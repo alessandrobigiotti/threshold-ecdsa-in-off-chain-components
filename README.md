@@ -10,11 +10,16 @@ The following picture shows the use case examined and the latency performance of
 ## Optimised Elliptic Curve Operations
 
 Table 1 shows the gas consumed by each operation needed for the threshold signature verification.
-The following picture shows the use case examined and the latency performance of the VerifyThresholdECDSA smart contract otbtained on differnt blockchain networks
-
 <p align="center">
-<img src="https://github.com/alessandrobigiotti/threshold-ecdsa-in-off-chain-components/blob/main/img/gastable.png" alt="Gas consumption" style="width:50%; border:0;">
+<img src="https://github.com/alessandrobigiotti/threshold-ecdsa-in-off-chain-components/blob/main/img/gastable.png" alt="Gas consumption" style="width:65%; border:0;">
 </p>
+
+The goal of the *EllipticCurveMaths.sol* library is to minimise the gas consumed and allow the application of any Weierstrass elliptic curve. To this end, research was carried out on open source projects on github to understand the state of the art from an implementation point of view and evaluate any optimisations. The repositories considered had to meet the following requirements:
+
+- $`C.1:`$ the Solidity version $`\geq`$ 0.8.0
+- $`C.2:`$ the repository provides the implementation for generic operations over Weierstrass elliptic curves
+
+
 
 ## Project Structure
 

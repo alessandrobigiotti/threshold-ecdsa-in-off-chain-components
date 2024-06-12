@@ -1,7 +1,7 @@
 {
-  "name": "ThresholdECDSAVerify",
+  "name": "ECDSA in Off-Chain Components",
   "version": "0.1.0",
-  "description": "Verify a threshold ECDSA on smart contract",
+  "description": "Off-Chain Components Using Threshold ECDSA",
   "directoreis": {
     "test": "test"
   },
