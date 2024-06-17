@@ -6,7 +6,7 @@ This repository contains a library for elliptic curve operations (*EllipticCurve
 Enabling verification of a digital signature on blockchain coming from an off-chain component can open up numerous applications. This approach can be applied in all those contexts that involve an on-chain resource managed by a series of off-chain nodes and shared with users present in the blockchain.
 
 The following picture shows the use case examined and the latency performance of the *VerifyThresholdECDSA* smart contract obtained on differnt blockchain networks:
-![alt text](https://github.com/alessandrobigiotti/threshold-ecdsa-in-off-chain-components/blob/main/img/img.png)
+![alt text](https://github.com/alessandrobigiotti/threshold-ecdsa-in-off-chain-components/blob/main/img/img1.png)
 
 ## Optimised Elliptic Curve Operations
 
