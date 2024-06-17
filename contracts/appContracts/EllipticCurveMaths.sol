@@ -521,6 +521,7 @@ library EllipticCurveMaths {
         uint256 rz;
 
         // Precompute the values Pk + G in precX and precY
+        // it will be used during the Strauss Shamir's trick algorithm
         uint256 precX;
         uint256 precY;
         uint256 precZ;
@@ -560,21 +561,21 @@ library EllipticCurveMaths {
                 let bitK1 := and(shr(sub(i, 1), k1), 1)
                 let bitK2 := and(shr(sub(i, 1), k2), 1)
 
-                // if z != 0 double the current point
+                // if z != 0 double the current point using the assembly subroutine doublePointAss
                 if iszero(eq(rz, 0)) {
                     rx, ry, rz := doublePointAss(rx, ry, rz)
                 }
-                // if the i-th bit of k1 = 1 add G to the current point
+                // if the i-th bit of k1 = 1 add G to the current point using the subroutine addPointAssTrick
                 if and(eq(bitK1, 1), eq(bitK2, 0))  {
                     rx, ry, rz := addPointAssTrick(rx, ry, rz, Gx, Gy, 1)
                     continue
                 }
-                // if the i-th bit of k2 = 1 add Pk to the current point
+                // if the i-th bit of k2 = 1 add Pk to the current point using the subroutine addPointAssTrick
                 if and(eq(bitK1, 0), eq(bitK2, 1)) {
                     rx, ry, rz := addPointAssTrick(rx, ry, rz, pkx, pky, 1)
                     continue
                 }
-                // if both the i-th bits of k1 and k2 are 1 add Pk + G to the current point
+                // if both the i-th bits of k1 and k2 are 1 add Pk + G to the current point using the subroutine addPointAssTrick
                 if and(eq(bitK1, 1), eq(bitK2, 1)){
                     rx, ry, rz := addPointAssTrick(rx, ry, rz, precX, precY, 1)
                     continue

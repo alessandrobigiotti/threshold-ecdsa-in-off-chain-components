@@ -12,15 +12,20 @@ import "./secp256k1.sol";
    Verify that the imports work, alternatively, download the smart contracts and import them from local */
 /*****************************************************************************************************************************/
 // Elliptic Curve from Witenet Foundation
+// Repo1
 import {EllipticCurve} from "https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol";
-// Elliptic Curve from Renaud Dubois
-import {FCL_Elliptic_ZZ} from "https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol";
+// ----------------------------------------------------------------------------------------------------------------------------/
 // Elliptic Curve from Merkleplant
+// Repo2
 import {Secp256k1Arithmetic} from "https://github.com/pmerkleplant/crysol/blob/main/src/secp256k1/Secp256k1Arithmetic.sol";
 import {ProjectivePoint, Point} from "https://github.com/pmerkleplant/crysol/blob/main/src/secp256k1/Secp256k1Arithmetic.sol";
+// ----------------------------------------------------------------------------------------------------------------------------/
+// Elliptic Curve from Renaud Dubois
+// Repo3
+import {FCL_Elliptic_ZZ} from "https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol";
 /*****************************************************************************************************************************/
-
 // Elliptic Curve implementation proposed
+// Proposed
 import {EllipticCurveMaths} from "./EllipticCurveMaths.sol";
 
 
