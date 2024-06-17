@@ -108,6 +108,128 @@ library EllipticCurveMaths {
     }
 
 
+    /**
+    * @dev This function calculates the double of a point on an elliptic curve.
+    *
+    * @param x The x-coordinate of the point
+    * @param y The y-coordinate of the point
+    * @return xf The final x-coordinate
+    * @return yf The final y-coordinate
+    */
+    function doublePoint(uint256 x, uint256 y) internal view returns (uint xf, uint yf) {
+        // lambda = x^2 (save x^2 to avoid repiting the calculation)
+        uint256 lambda = expMod(x, 2, q);
+        assembly ("memory-safe") {
+            // lambda = 3 * x^2 + a
+            lambda := addmod(mulmod(3, lambda, q), a, q)
+        }
+        // lambda = (3 * x^2 + a) * (2y)^-1
+        lambda = mulmod(lambda, fermatModInverse(mulmod(2, y, q)), q);
+
+        // store in xf the value lambda^2
+        xf = expMod(lambda, 2, q);
+
+        assembly ("memory-safe") {
+            // Compute the final coordinates
+            // xf := lambda^2 -2x
+            xf := addmod(addmod(xf, sub(q, x), q), sub(q, x), q)
+            // yf := lambda*(x - xf)-y
+            yf := addmod(mulmod(lambda, addmod(x, sub(q, xf), q), q), sub(q, y), q)
+        }
+
+        return (xf, yf);
+    }
+
+
+    /**
+    * @dev Elliptic curve point addition
+    *
+    * @param x1 The x-coordinate of the first point
+    * @param y1 The y-coordinate of the first point
+    * @param x2 The x-coordinate of the second point
+    * @param y2 The y-coordinate of the second point
+    * @return xf The final x-coordinate
+    * @return yf The final y-coordinate
+    */
+    function addPoint(uint256 x1, uint256 y1, uint256 x2, uint256 y2) internal view returns (uint xf, uint yf) {
+        // If the points are equal perform the point addition
+        if (x1 == x2 && y1 == y2) {
+            // Point doubling
+            return doublePoint(x1, y1);
+
+        } else {
+            // Point addition
+            // Store lambda = (y2 - y1) / (x2 - x1)
+            uint256 lambda = mulmod(addmod(y2,  q - y1,  q), fermatModInverse(addmod(x2,  q - x1,  q)),  q);
+
+            // calculate lambda^2
+            xf = expMod(lambda, 2,  q);
+            assembly ("memory-safe") {
+                // calculate xf = lambda^2 - x1 - x2
+                xf := addmod(addmod(xf,  sub(q, x1),  q),  sub(q, x2),  q)
+            }
+
+            assembly ("memory-safe") {
+                // calculate yf = lambda(x1 - xf) - y1
+                yf := addmod(mulmod(lambda, addmod(x1,  sub(q, xf),  q),  q),  sub(q, y1),  q)
+            }
+
+            return (xf, yf);
+        }
+    }
+
+
+    /**
+    * @dev Converts a point (x, y, z) expressed in Jacobian coordinates to affine coordinates (xf, yf, 1)
+    *
+    * @param x The Jacobian x-coordinate
+    * @param y The Jacobian y-coordinate
+    * @param z The Jacobian z-coordinate
+    * @return xf The x-coordinate
+    * @return yf The y-coordinate
+    */
+    function toAffine(uint256 x, uint256 y, uint256 z)
+        internal view
+        returns (uint256 xf, uint256 yf)
+    {
+        // Store z^-1
+        uint256 zInv = fermatModInverse(z);
+        assembly ("memory-safe") {
+            // Store (z^-1)^2
+            let zInv2 := mulmod(zInv, zInv, q)
+            // Compute xf = x * (z^-1)^2
+            xf := mulmod(x, zInv2, q)
+            // Compute yf = y * (z^-1)^3
+            yf := mulmod(y, mulmod(zInv, zInv2, q), q)
+        }
+
+        return (xf, yf);
+    }
+
+
+    /**
+    * @dev Function to convert a point in affine coordinates only for the verification of the ECDSA
+    *
+    * @param x The Jacobian x-coordinate
+    * @param z The Jacobian z-coordinate
+    * @return xf The affine coordinate x (mod p)
+    */
+    function toAffineECDSA(uint x, uint z)
+        internal view
+        returns (uint xf)
+    {
+        // Store z^-1
+        uint256 zInv = fermatModInverse(z);
+        assembly ("memory-safe") {
+            // Store (z^-1)^2
+            let zInv2 := mulmod(zInv, zInv, q)
+            // Compute xf = x * (z^-1)^2 (mod p)
+            xf := mod(mulmod(x, zInv2, q), p)
+        }
+
+        return xf;
+    }
+
 
     /**
     * @dev Function to check if a given point (x, y) lies on the elliptic curve y^2 = x^3 + ax + b over a finite field Fq
@@ -140,6 +262,80 @@ library EllipticCurveMaths {
         // Check if the point satisfies the curve equation
         return y2 == rhs;
     }
+
+
+    /**
+    * @dev Multiply a point (x, y) for a scalar k using the double and add algorithm in Jacobian coordinates
+    *
+    * @param k The scalar to multiply
+    * @param x The x-coordinate of the point
+    * @param y The y-coordinate of the point
+    * @return xf The final x-coordinate
+    * @return yf The final y-coordinate
+    */
+    function scalarMultiplication(uint256 k, uint256 x, uint256 y)
+        internal view
+        returns (uint256 xf, uint256 yf)
+    {
+        // Jacobian multiplication
+        (xf, yf) = jacobianMultiplication(k, x, y, 1);
+        return (xf, yf);
+    }
+
+    /**
+    * @dev Function to compute the scalar product between a scalar k and a Jacobian point (x, y, z)
+    *
+    * @param k The scalar to multiply
+    * @param x The x-coordinate of the point
+    * @param y The y-coordinate of the point
+    * @param z The z-coordinate of the point
+    * @return xf The final x-coordinate
+    * @return yf The final y-coordinate
+    */
+    function jacobianMultiplication(uint256 k, uint256 x, uint256 y, uint256 z)
+        internal view
+        returns (uint256 xf, uint256 yf)
+    {
+        // Early return in case that k == 0
+        if (k == 0) {
+            return (x, y);
+        }
+
+        // Start with the point at infinity in Jacobian coordinates
+        uint256 zf;
+
+        // Verify if the constant a of the curve is 0, <0 or >0 and set the point at infinity in Jacobian coordinates
+        assembly ("memory-safe") {
+            if eq(isZeroA, 1) {
+                xf := 0
+                yf := 0
+                zf := 1
+            }
+            if eq(isNegativeA, 1) {
+                xf := 1
+                yf := 0
+                zf := 1
+            }
+            if eq(isPositiveA, 1) {
+                xf := 0
+                yf := 0
+                zf := 0
+            }
+        }
+
+        // Double and add algorithm
+        while (k != 0) {
+            if ((k & 1) != 0) {
+                // If the current bit == 1 add the current point to the original point
+                (xf, yf, zf) = jacobianAddition(xf, yf, zf, x, y, z);
+            }
+            k = k >> 1;
+            // Always double the point
+            (x, y, z) = jacobianDoubling(x, y, z);
+        }
+        return toAffine(xf, yf, zf);
+    }
+
 
     /**
     * @dev Function to calculate the poitn addition in Jacobian coordinates
@@ -304,80 +500,6 @@ library EllipticCurveMaths {
 
         return(xf, yf, zf);
 
-    }
-
-
-
-    /**
-    * @dev Multiply a point (x, y) for a scalar k using the double and add algorithm in Jacobian coordinates
-    *
-    * @param k The scalar to multiply
-    * @param x The x-coordinate of the point
-    * @param y The y-coordinate of the point
-    * @return xf The final x-coordinate
-    * @return yf The final y-coordinate
-    */
-    function scalarMultiplication(uint256 k, uint256 x, uint256 y)
-        internal view
-        returns (uint256 xf, uint256 yf)
-    {
-        // Jacobian multiplication
-        (xf, yf) = jacobianMultiplication(k, x, y, 1);
-        return (xf, yf);
-    }
-
-    /**
-    * @dev Function to compute the scalar product between a scalar k and a Jacobian point (x, y, z)
-    *
-    * @param k The scalar to multiply
-    * @param x The x-coordinate of the point
-    * @param y The y-coordinate of the point
-    * @param z The z-coordinate of the point
-    * @return xf The final x-coordinate
-    * @return yf The final y-coordinate
-    */
-    function jacobianMultiplication(uint256 k, uint256 x, uint256 y, uint256 z)
-        internal view
-        returns (uint256 xf, uint256 yf)
-    {
-        // Early return in case that k == 0
-        if (k == 0) {
-            return (x, y);
-        }
-
-        // Start with the point at infinity in Jacobian coordinates
-        uint256 zf;
-
-        // Verify if the constant a of the curve is 0, <0 or >0 and set the point at infinity in Jacobian coordinates
-        assembly ("memory-safe") {
-            if eq(isZeroA, 1) {
-                xf := 0
-                yf := 0
-                zf := 1
-            }
-            if eq(isNegativeA, 1) {
-                xf := 1
-                yf := 0
-                zf := 1
-            }
-            if eq(isPositiveA, 1) {
-                xf := 0
-                yf := 0
-                zf := 0
-            }
-        }
-
-        // Double and add algorithm
-        while (k != 0) {
-            if ((k & 1) != 0) {
-                // If the current bit == 1 add the current point to the original point
-                (xf, yf, zf) = jacobianAddition(xf, yf, zf, x, y, z);
-            }
-            k = k >> 1;
-            // Always double the point
-            (x, y, z) = jacobianDoubling(x, y, z);
-        }
-        return toAffine(xf, yf, zf);
     }
 
     /**
@@ -622,127 +744,4 @@ library EllipticCurveMaths {
         }
         return toAffineECDSA(rx, rz);
     }
-
-    /**
-    * @dev Converts a point (x, y, z) expressed in Jacobian coordinates to affine coordinates (xf, yf, 1)
-    *
-    * @param x The Jacobian x-coordinate
-    * @param y The Jacobian y-coordinate
-    * @param z The Jacobian z-coordinate
-    * @return xf The x-coordinate
-    * @return yf The y-coordinate
-    */
-    function toAffine(uint256 x, uint256 y, uint256 z)
-        internal view
-        returns (uint256 xf, uint256 yf)
-    {
-        // Store z^-1
-        uint256 zInv = fermatModInverse(z);
-        assembly ("memory-safe") {
-            // Store (z^-1)^2
-            let zInv2 := mulmod(zInv, zInv, q)
-            // Compute xf = x * (z^-1)^2
-            xf := mulmod(x, zInv2, q)
-            // Compute yf = y * (z^-1)^3
-            yf := mulmod(y, mulmod(zInv, zInv2, q), q)
-        }
-
-        return (xf, yf);
-    }
-
-
-    /**
-    * @dev Function to convert a point in affine coordinates only for the verification of the ECDSA
-    *
-    * @param x The Jacobian x-coordinate
-    * @param z The Jacobian z-coordinate
-    * @return xf The affine coordinate x (mod p)
-    */
-    function toAffineECDSA(uint x, uint z)
-        internal view
-        returns (uint xf)
-    {
-        // Store z^-1
-        uint256 zInv = fermatModInverse(z);
-        assembly ("memory-safe") {
-            // Store (z^-1)^2
-            let zInv2 := mulmod(zInv, zInv, q)
-            // Compute xf = x * (z^-1)^2 (mod p)
-            xf := mod(mulmod(x, zInv2, q), p)
-        }
-
-        return xf;
-    }
-
-
-      /**
-      * @dev This function calculates the double of a point on an elliptic curve.
-      *
-      * @param x The x-coordinate of the point
-      * @param y The y-coordinate of the point
-      * @return xf The final x-coordinate
-      * @return yf The final y-coordinate
-      */
-      function doublePoint(uint256 x, uint256 y) internal view returns (uint xf, uint yf) {
-          // lambda = x^2 (save x^2 to avoid repiting the calculation)
-          uint256 lambda = expMod(x, 2, q);
-          assembly ("memory-safe") {
-              // lambda = 3 * x^2 + a
-              lambda := addmod(mulmod(3, lambda, q), a, q)
-          }
-          // lambda = (3 * x^2 + a) * (2y)^-1
-          lambda = mulmod(lambda, fermatModInverse(mulmod(2, y, q)), q);
-
-          // store in xf the value lambda^2
-          xf = expMod(lambda, 2, q);
-
-          assembly ("memory-safe") {
-              // Compute the final coordinates
-              // xf := lambda^2 -2x
-              xf := addmod(addmod(xf, sub(q, x), q), sub(q, x), q)
-              // yf := lambda*(x - xf)-y
-              yf := addmod(mulmod(lambda, addmod(x, sub(q, xf), q), q), sub(q, y), q)
-          }
-
-          return (xf, yf);
-      }
-
-
-      /**
-      * @dev Elliptic curve point addition
-      *
-      * @param x1 The x-coordinate of the first point
-      * @param y1 The y-coordinate of the first point
-      * @param x2 The x-coordinate of the second point
-      * @param y2 The y-coordinate of the second point
-      * @return xf The final x-coordinate
-      * @return yf The final y-coordinate
-      */
-      function addPoint(uint256 x1, uint256 y1, uint256 x2, uint256 y2) internal view returns (uint xf, uint yf) {
-          // If the points are equal perform the point addition
-          if (x1 == x2 && y1 == y2) {
-              // Point doubling
-              return doublePoint(x1, y1);
-
-          } else {
-              // Point addition
-              // Store lambda = (y2 - y1) / (x2 - x1)
-              uint256 lambda = mulmod(addmod(y2,  q - y1,  q), fermatModInverse(addmod(x2,  q - x1,  q)),  q);
-
-              // calculate lambda^2
-              xf = expMod(lambda, 2,  q);
-              assembly ("memory-safe") {
-                  // calculate xf = lambda^2 - x1 - x2
-                  xf := addmod(addmod(xf,  sub(q, x1),  q),  sub(q, x2),  q)
-              }
-
-              assembly ("memory-safe") {
-                  // calculate yf = lambda(x1 - xf) - y1
-                  yf := addmod(mulmod(lambda, addmod(x1,  sub(q, xf),  q),  q),  sub(q, y1),  q)
-              }
-
-              return (xf, yf);
-          }
-      }
-
 }
