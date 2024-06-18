@@ -2,12 +2,6 @@
 
 This repository contains a library for elliptic curve operations (*EllipticCurveMaths.sol*) which is intended to be applicable to generic Weierstrass elliptic curves. The library operations are used by the *VerifyThresholdECDSA.sol* smart contract to verify an ECDSA-based threshold signature from an off-chain component. The threshold signature is used by off-chain components to manage inter-chain transactions and must be validated within a specific smart contact.
 
-
-Enabling verification of a digital signature on blockchain coming from an off-chain component can open up numerous applications. This approach can be applied in all those contexts that involve an on-chain resource managed by a series of off-chain nodes and shared with users present in the blockchain.
-
-The following picture shows the use case examined and the latency performance of the *VerifyThresholdECDSA* smart contract obtained on differnt blockchain networks:
-![alt text](https://github.com/alessandrobigiotti/threshold-ecdsa-in-off-chain-components/blob/main/img/img1.png)
-
 ## Optimised Elliptic Curve Operations
 
 The Table shows the gas consumed by individual operations on each elliptic curve indicated. The performance of the proposed library, *EllipticCurveMath.sol*, was compared to other open source implementations found on Github. The symbol "-" means "Not applicable" and the symbol X means "Operation not provided".
@@ -39,26 +33,27 @@ The operations indicated mean: $k^{-1}$ (mod $q$) the inverse in modulus of a nu
 
 ### Optimisation made
 To improve performance compared to the libraries [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol) and [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol), a series of optimizations have been made compared to existing implementations. In particular:
-- Introduction of *Fermat's little theorem* for computing the inverse modulus $q$, where $q$ is the order of the finite field $F_q$. This optimization is applicable only to operations carried out modulus $q$, while for operations within the Abelian group $G_p$ the extended Euclid algorithm must be used since there is no guarantee that the order $p$ of the group $G$ is prime.
+- Introduction of *Fermat's little theorem* for computing the inverse modulus $q$ , where $q$ is the order of the finite field $F_q$ . This optimization is applicable only to operations carried out modulus $q$, while for operations within the Abelian group $G_p$ the extended Euclid algorithm must be used since there is no guarantee that the order $p$ of the group $G$ is prime.
 - Fixed the error of the function for the addition between two points, adding the check if the points are equal. In this way the function for the addition of two points can be used within iterative processes, without the process breaking if the points considered become equal (This was left by the author of [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol) in the comments).
 - Optimised the functions for calculating the addition of points and for calculating the double of a point. The functions for calculating the addition of points and the double of a point do not use any data structures, arrays, structs or anything else. They are all based on state variables and the functions implemented are all in assembly. This drastically reduces gas consumption, especially in iterative functions.
 - Introduction of the interleaved scalar product to speed up the calculation of the sum of scalar products. This is the core optimisation made. The last verification step of verifying an ECDSA-based signature involves the sum of two scalar products, therefore the introduction of the Strauss-Shamir's trick for the calculation drastically reduces gas consumption. To further optimise the function, a crafty implementation of the sum of two points is provided, using a subroutine written in assembly (i.e., a function into a function) which for the calculation of the sum of two points in Jacobian coordinates halves the calculations necessary for update the z coordinate (see function *addPointAssTrick*)
 
-
-
-
 ## Project Structure
 
-The project contains the smart contracts used for testing. It is structured according to the best practice adopted by [nodejs](https://nodejs.org/en) and the deployment of the smart contracts was carried out via [truffle](https://archive.trufflesuite.com/docs/truffle/quickstart/).
+This section explains the project structure, the main folders and describes the files content. The project contains smart contracts to be deployed on a evm-based blockchain, and it is structured according to the best practice adopted by [nodejs](https://nodejs.org/en) and the deployment of the smart contracts was carried out via [truffle](https://archive.trufflesuite.com/docs/truffle/quickstart/). The interaction to smart contracts and the off-chain processes are implemented using python.
 
-All smart contracts are located under the ```contract/appContracts``` folder. In particular:
-- *CompareECC.sol*: Contains calls to other smart contracts that implement generic operations on elliptic curves. This smart contract allows you to evaluate the gas consumed by the proposed library (EllipticCurveMaths.sol) compared to libraries found in literatures. In particular, the implementations of
-[Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol),
-[Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol) and [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol).
+### On-Chain code
 
-- *EllipticCurveMaths.sol*: Contains the proposed implementation. The library aims to be applicable to any Weierstrass elliptic curve and to save as much gas as possible for operations.
+The folder contracts contain the smart contracts to compute the elliptic curve operations and to verify a threshold signature based on ECDSA. All smart contracts are located under the ```contract/appContracts``` folder. In particular:
+- *CompareECC.sol*: Contains calls to other smart contracts that implement generic operations on elliptic curves. This smart contract allows you to evaluate the gas consumed by the proposed library (EllipticCurveMaths.sol) compared to libraries found in literatures. In particular, the implementations of Repo1: [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol), Repo2: [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol) and Repo3: [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol). This smart con
+
+- *EllipticCurveMaths.sol*: Contains the proposed implementation. The library aims to be applicable to any Weierstrass elliptic curve and to save as much gas as possible for operations. All functions are implemented using assembly low level instructions, and assembly soub routine. The main method is the interleaved scalar product aimed to streamline the sum of two scalar products needed to verify a threshold based ecdsa signature.
 
 - *VerifyThresholdECDSA.sol*: This smart contract aims to verify an ECDSA-based digital signature that comes from an off-chain component. To do so, this smart contract has to reconstruct the message provided by the user, calculate its hash and verify the signature using the global public key.
+
+### Off-chain code
+
+The folder off_chain_code contains the process needed to interact with the deployed smart contracts
 
 ## Deploy Configuration
 

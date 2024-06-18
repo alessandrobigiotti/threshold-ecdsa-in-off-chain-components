@@ -13,8 +13,8 @@ var optimism_sepolia_testnet = 'https://opt-sepolia.g.alchemy.com/v2/<API-KEY>'
 var shimmer_testnet = 'https://json-rpc.evm.testnet.shimmer.network/' // this testnet doesn't require an API-KEY
 
 
-// The private keys should be stored in another way
-// Put in the following arrey the private keys used for deployment or load them from environment
+// The private keys should be stored in another way, it is just for demostrative purposes
+// Put in the following array the private keys used for deployment or load them from environment
 var besuKey = ['<Private Key for Besu chain>'];
 var ethereumKey = ['<Private Key for Ethereum Sepolia>']
 var optimismKey = ['<Private Key for Optimism Sepolia>']
