@@ -12,7 +12,7 @@ The Table shows the gas consumed by individual operations on each elliptic curve
 
 The operations indicated mean: $k^{-1}$ (mod $q$) the inverse in modulus of a number greater than 250 bits, where $q$ is the order of the finite field $F_q$; $2 \cdot P$ is the calculation of double a point; $P_1+P_2$ is the point addition; $k \cdot G$ is the scalar multiplication between a value $k$ larger than 250bits and the generator $G$ of the specific curve; $u_1 \cdot G + u_2 \cdot P_k$ is the sum of two scalar product, conducted using the interleaved scalar multiplication algorithm, where both $u_1$ and $u_2$ are larger than 250 bits, $G$ is the generator of the curve and $P_k$ is a valid public key.
 
-|Elliptic Curve|   Operation   |[MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol)|[Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)|[Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol)|*EllipticCurveMath.sol*|
+|Elliptic Curve|   Operation   |[MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol)|[Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)|[Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol)|*EllipticCurveMaths.sol*|
 | :---------------- | :---------------: | ----: | ----: | ----: | ----: |
 |secp256k1|$k^{−1}$ (mod $q$)|3644|-| 66193| 2763 |
 |secp256k1|$2 \cdot P$|X|-|2534|1887|
@@ -54,7 +54,16 @@ The folder contracts contain the smart contracts to compute the elliptic curve o
 
 ### Off-chain code
 
-The folder off_chain_code contains the process needed to interact with the deployed smart contracts
+The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures. In particular:
+
+- *shamir_secret_sharing.py*: contains functions to share a certain secret $sk$ among a set of $n$ parties. Specifically, the  following functions are implemented:
+  - *lagrange_coefficient*: This function allows you to recover the Lagrange coefficient relating to a specific part $i$ in a share from a polynomial of degree $t-1$: $$lambda_i = \prod_{\substack{1 \le j \le t \\ j \ne i}} \frac{x_j}{x_j - x_i}$$
+
+
+
+(fast ECDSA) https://eprint.iacr.org/2019/114.pdf
+
+(bc_ectss) https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909
 
 ## Deploy Configuration
 
