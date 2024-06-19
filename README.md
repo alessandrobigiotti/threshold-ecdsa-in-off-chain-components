@@ -72,7 +72,7 @@ The folder off_chain_code contains the process needed to interact with the deplo
 
   2. *Partial Signatures*: each party selects a secret nonce $k_i$ and produces its commitment on the nonce by computing the point $R_i$ = $k_i$ $\cdot$ $G$. Once the commitments have been collected, the point $$R = (x', y') = \sum_{i=1}^{t} R_i$$ is calculated, then the value $x'$ is taken as the agreed parameter for the calculation of partial signatures.
 
-  Once the value $k$ = $per'$ has been agreed upon, each party produces their partial signature as follows: $$s_i ​ = (m + r \cdot f(i))⋅k^{−1} \text{mod} q$$, where $m$ is the hash of the message to be signed, $k$ is the shared nonce used by the nodes to sign the message; $r$=$x'$ is the x coordinate of the calculation $k \cdot G$.
+  Once the value $k$ has been agreed upon, each party produces their partial signature as follows: $$s_i ​ = (m + r \cdot f(i))⋅k^{−1}\ \text{mod}\ q$$, where $m$ is the hash of the message to be signed, $k$ is the shared nonce used by the nodes to sign the message; $r$ = $x'$ is the $x$ coordinate of the point $R$.
 
 
 
