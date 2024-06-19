@@ -57,7 +57,8 @@ The folder contracts contain the smart contracts to compute the elliptic curve o
 The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures. In particular:
 
 - *shamir_secret_sharing.py*: contains functions to share a certain secret $sk$ among a set of $n$ parties. Specifically, the  following functions are implemented:
-  - *lagrange_coefficient*: This function allows you to recover the Lagrange coefficient relating to a specific part $i$ in a share from a polynomial of degree $t-1$: $$lambda_i = \prod_{\substack{1 \le j \le t \\ j \ne i}} \frac{x_j}{x_j - x_i}$$
+  - *lagrange_coefficient*: This function allows you to recover the Lagrange coefficient relating to a specific part $i$ in a share from a polynomial of degree $t-1$: $$\lambda_i = \prod_{\substack{1 \le j \le t \\ j \ne i}} \frac{x_j}{x_j - x_i}$$
+  - *generate_polynomial*: This function allows you to create a polynomial $f(x)$ of degree $t-1$, such that the coefficient $a_0$ = $f(0)$ contains the secret $sk$ to be shared with $n$ parties: $$f(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{t-1} x^{t-1}$$
 
 
 
