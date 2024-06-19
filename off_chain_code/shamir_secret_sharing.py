@@ -1,16 +1,29 @@
 import sys
 sys.path.insert(1, '../threshold-ecdsa-in-off-chain-components/off_chain_code')
-from web3 import Web3
-from elliptic_curve_operations import EllipticCurve, Point, ecdsa_sign, ecdsa_verify
-import hashlib
 import random
 import secrets
+import hashlib
+from web3 import Web3
+from dataclasses import dataclass
+from typing import Optional, List, Tuple
+from elliptic_curve_operations import Point, EllipticCurve, ecdsa_sign, ecdsa_verify
+
+# Function Lagrange coefficient
+def lagrange_coefficient(i: int, index: List[int], curve):
+    numerator = 1
+    denominator = 1
+    for j in index:
+        if i != j:
+            numerator = (numerator * (-j)) % curve.n
+            denominator = (denominator * (i - j)) % curve.n
+
+    return numerator * pow(denominator, -1, curve.n) % curve.n
 
 # Function to generate a random polynomial of degree t-1
 def generate_polynomial(secret, t, curve):
     coefficients = [secret]
     for _ in range(t - 1):
-        coefficients.append(secrets.randbelow(curve.p))
+        coefficients.append(secrets.randbelow(curve.n))
     return coefficients
 
 # Function to evaluate the polynomial at a given x
@@ -26,7 +39,7 @@ def share_secret(secret, n, t, curve):
     shares = []
     for i in range(1, n + 1):
         x = i
-        y = evaluate_polynomial(coefficients, x, curve.p)
+        y = evaluate_polynomial(coefficients, x, curve.n)
         shares.append((x, y))
 
     return shares
@@ -47,33 +60,32 @@ def reconstruct_secret(shares, t, curve_order):
 
 
 
-###########################################
-# DEBUG CODE: the following code is needed to very the correct functioning of the secret sharing
-###########################################
-'''
-# Elliptic Curve
-# SECP256k1 parameters
-p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
-a = 0
-b = 7
-G = Point(
-    0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
-    0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+"""
+# Define the elliptic curve parameters
+curve = EllipticCurve(
+    p=0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f,
+    a=0,
+    b=7,
+    G=Point(
+        x=55066263022277343669578718895168534326250603453777594175500187360389116729240,
+        y=32670510020758816978083085130507043184471273380659243275938904335757337482424
+    ),
+    n=0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141,
+    h=1
 )
-n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-h = 1
-curve = EllipticCurve(p, a, b, G, n, h)
-
-secret = 50
+# Generate a random secret number
+secret = secrets.randbelow(curve.n)
+secret
 # Define the parameters for sharing the secret
-num_nodes = 10  # Total number of parties
-threshold = 7  # Number of parties needed to reconstruct the secret
+n = 5  # Total number of parties
+t = 3  # Number of parties needed to reconstruct the secret
 
-shares = share_secret(secret, num_nodes, threshold, curve)
+shares = share_secret(secret, n, t, curve)
 shares
-recombine_shares = [shares[0]] + [shares[2]] + [shares[3]] + [shares[4]] + [shares[6]] + [shares[7]] + [shares[9]]
+recombine_shares = [shares[0]] + [shares[1]] + [shares[2]]
 
-rec_secret = reconstruct_secret(shares, threshold, curve.p)
+rec_secret = reconstruct_secret(recombine_shares, t, curve.n)
 
-print("Is the reconstruction valid? ", rec_secret == secret)
-'''
+print("Reconstruction result: ", rec_secret == secret)
+lagrange_coefficient(1, [1,2,3], curve)
+"""
