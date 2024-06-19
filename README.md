@@ -52,6 +52,9 @@ The folder contracts contain the smart contracts to compute the elliptic curve o
 
 - *VerifyThresholdECDSA.sol*: This smart contract aims to verify an ECDSA-based digital signature that comes from an off-chain component. To do so, this smart contract has to reconstruct the message provided by the user, calculate its hash and verify the signature using the global public key.
 
+- *Source* and *Target* smart contracts: TO FINISH...
+
+
 ### Off-chain code
 
 The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures. In particular:
