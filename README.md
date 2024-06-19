@@ -66,6 +66,8 @@ The folder off_chain_code contains the process needed to interact with the deplo
 - *try_threshold_ecdsa.py*: this function simulates an ECDSA-based threshold digital signature. The secp256k1 elliptic curve is used in the simulation, the number of nodes is 10 and the threshold is 7. The algorithm used involves the following steps:
   1. *Key Distribution*: select a random number $sk$ (mod $p$), i.e., the secret to share. Using the procedures implemented in the *shamir_secret_sharing.py* file, the secret is divided into $n$ shares of the type ($i$, $f(i)$), where $f$ is a polynomial of degree ($t-1$ ) randomly generated where $f(0)$ = $sk$. Each node calculates its own public key $pk_i$ = $f(i)$ $\cdot$ $G$, where $G$ is the generator point of the curve.
 
+  After generating the shares and public keys, the procedure verifies their correctness, that is: $$sk = \sum_{i=1}^{t} \lambda_i \cdot f(i)$$ where, $\lambda_i$ is the lagrange coefficient.
+
 
 
 (fast ECDSA) https://eprint.iacr.org/2019/114.pdf
