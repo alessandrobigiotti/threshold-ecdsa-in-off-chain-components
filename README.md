@@ -76,7 +76,7 @@ The folder off_chain_code contains the process needed to interact with the deplo
 
   3. *Threshold Signature*: Once the partial signatures $s_i$ have been calculated, they must be combined to produce the threshold signature $\sigma$. The aggregation procedure works as follows:
     - $r$ = $r_i$ $\Longleftrightarrow$ $r_i$ = $r_j$ $\forall$ $s_i$, $s_j$ $\wedge$ $i \neq j$;
-    - $s = \sum_{i=1}^{t} \lambda_i \cdot s_i$
+    - $$s = \sum_{i=1}^{t} \lambda_i \cdot s_i$$
     - $\sigma = (r,s)$
 
   4. *Threshold Verification*: The verification is performed using the standard ECDSA verification algorithm.
