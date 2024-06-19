@@ -2,9 +2,6 @@ import sys
 sys.path.insert(1, '../threshold-ecdsa-in-off-chain-components/off_chain_code')
 import random
 import secrets
-import hashlib
-from web3 import Web3
-from dataclasses import dataclass
 from typing import Optional, List, Tuple
 from elliptic_curve_operations import Point, EllipticCurve, ecdsa_sign, ecdsa_verify
 
@@ -44,21 +41,9 @@ def share_secret(secret, n, t, curve):
 
     return shares
 
-# Function to reconstruct the secret using t out of n shares
-def reconstruct_secret(shares, t, curve_order):
-    secret = 0
-    for i in range(t):
-        numerator = 1
-        denominator = 1
-        for j in range(t):
-            if i != j:
-                numerator = (numerator * (-shares[j][0])) % curve_order
-                denominator = (denominator * (shares[i][0] - shares[j][0])) % curve_order
-        lagrange_coefficient = numerator * pow(denominator, -1, curve_order) % curve_order
-        secret = (secret + (lagrange_coefficient * shares[i][1]) % curve_order) % curve_order
-    return secret
-
-
+###############################################################
+# Debug code, verify if the implemented functions work properly
+###############################################################
 
 """
 # Define the elliptic curve parameters

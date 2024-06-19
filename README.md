@@ -37,7 +37,7 @@ To improve performance compared to the libraries [MerklePlant](https://github.co
 - Optimised the functions for calculating the addition of points and for calculating the double of a point. The functions for calculating the addition of points and the double of a point do not use any data structures, arrays, structs or anything else. They are all based on state variables and the functions implemented are all in assembly. This drastically reduces gas consumption, especially in iterative functions.
 - Introduction of the interleaved scalar product to speed up the calculation of the sum of two scalar products. This is the main optimisation performed. The last ECDSA-based signature verification step involves the sum of two scalar products, so introducing the Strauss-Shamir's trick to the calculation dramatically reduces gas consumption. To further optimise the function, a crafty implementation of the sum of two points is provided, using a subroutine written in assembly (i.e. a function within a function) which for the calculation of the sum of two points in Jacobian coordinates halves the calculations necessary to update the z coordinate (see function *addPointAssTrick*)
 
-Compared with [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)' implementation, the proposed solution aims to be applicable to several Weierstrass Elliptic Curves defined in a finite field $F_q$. To extend the applicability to any elliptic curve it is inevitable to sacrifice some gas.
+Compared with [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)' implementation, the proposed solution aims to be applicable to several Weierstrass Elliptic Curves defined in a finite field $F_q$. The authors were able to exploit some assumptions on the properties of the adopted curve (secp256r1) which allow saving some computations and some checks, saving further gas. To extend the applicability to any elliptic curve it is inevitable to sacrifice some gas.
 
 ## Project Structure
 
@@ -46,7 +46,7 @@ This section explains the project structure, the main folders and describes the 
 ### On-Chain code
 
 The folder contracts contain the smart contracts to compute the elliptic curve operations and to verify a threshold signature based on ECDSA. All smart contracts are located under the ```contract/appContracts``` folder. In particular:
-- *CompareECC.sol*: Contains calls to other smart contracts that implement generic operations on elliptic curves. This smart contract allows you to evaluate the gas consumed by the proposed library (EllipticCurveMaths.sol) compared to libraries found in literatures. In particular, the implementations of Repo1: [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol), Repo2: [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol) and Repo3: [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol). This smart con
+- *CompareECC.sol*: Contains calls to other smart contracts that implement generic operations on elliptic curves. This smart contract allows you to evaluate the gas consumed by the proposed library (EllipticCurveMaths.sol) compared to libraries found in literatures. In particular, the implementations of Repo1: [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol), Repo2: [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol) and Repo3: [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol).
 
 - *EllipticCurveMaths.sol*: Contains the proposed implementation. The library aims to be applicable to any Weierstrass elliptic curve and to save as much gas as possible for operations. All functions are implemented using assembly low level instructions, and assembly soub routine. The main method is the interleaved scalar product aimed to streamline the sum of two scalar products needed to verify a threshold based ecdsa signature.
 
@@ -56,9 +56,15 @@ The folder contracts contain the smart contracts to compute the elliptic curve o
 
 The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures. In particular:
 
+- *elliptic_curve_operations.py*: contains the functions that implement the main operations on an elliptical curve, which are: addition of points, multiplication of points, negation of a point, and verification of belonging of a point to a certain curve. The ```Point``` and ```EllipticCurve``` objects used by the various off-chain processes are defined here.
+
 - *shamir_secret_sharing.py*: contains functions to share a certain secret $sk$ among a set of $n$ parties. Specifically, the  following functions are implemented:
-  - *lagrange_coefficient*: This function allows you to recover the Lagrange coefficient relating to a specific part $i$ in a share from a polynomial of degree $t-1$: $$\lambda_i = \prod_{\substack{1 \le j \le t \\ j \ne i}} \frac{x_j}{x_j - x_i}$$
-  - *generate_polynomial*: This function allows you to create a polynomial $f(x)$ of degree $t-1$, such that the coefficient $a_0$ = $f(0)$ contains the secret $sk$ to be shared with $n$ parties: $$f(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{t-1} x^{t-1}$$
+  - *lagrange_coefficient*: this function allows you to recover the Lagrange coefficient relating to a specific part $i$ in a share from a polynomial of degree $t-1$: $$\lambda_i = \prod_{\substack{1 \le j \le t \\ j \ne i}} \frac{x_j}{x_j - x_i}$$
+  - *generate_polynomial*: this function allows you to create a polynomial $f(x)$ of degree $t-1$, such that the coefficient $a_0$ = $f(0)$ contains the secret $sk$ to be shared with $n$ parties: $$f(x) = a_0 + a_1 x + a_2 x^2 + \cdots + a_{t-1} x^{t-1}$$
+  - *share_secret*: this function implements the Shamir's Secret Sharing algorithm and allows sharing a secret $sk$ between $n$ parties. Each part obtains a pair ($i$, $f(i)$), where $i$ is the index of the part and $f(i)$ is the value of the polynomial generated by the previous function.
+
+- *try_threshold_ecdsa.py*: this function simulates an ECDSA-based threshold digital signature. The secp256k1 elliptic curve is used in the simulation, the number of nodes is 10 and the threshold is 7. The algorithm used involves the following steps:
+  1. *Key Distribution*: select a random number $sk$ (mod $p$), i.e., the secret to share. Using the procedures implemented in the *shamir_secret_sharing.py* file, the secret is divided into $n$ shares of the type ($i$, $f(i)$), where $f$ is a polynomial of degree ($t-1$ ) randomly generated where $f(0)$ = $sk$. Each node calculates its own public key $pk_i$ = $f(i)$ $\cdot$ $G$, where $G$ is the generator point of the curve.
 
 
 
@@ -90,6 +96,8 @@ truffle migrate --reset --network=<network-name>
 Specifying the name of the specific network.
 
 ***NOTICE:*** If you want to test the smart contracts on [Remix IDE](https://remix.ethereum.org/) it is mandatory to enable the optimiser under advanced settings!
+
+##
 
 ## Disclaimer
 THIS SOFTWARE IS PROVIDED AS IS WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
