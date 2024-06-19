@@ -56,6 +56,8 @@ The folder contracts contain the smart contracts to compute the elliptic curve o
 
 The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures. In particular:
 
+- *repositories_comparison.py*: this file contains calls to the various smart contracts tested for elliptic curve calculations: Repo1: [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol), Repo2: [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol) and Repo3: [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol) and *EllipticCurveMaths.sol* in order to calculate their average gas consumption. For each operation of those shown in the table, 250 transactions are carried out and finally a csv is saved on which the metrics shown have been calculated.
+
 - *elliptic_curve_operations.py*: contains the functions that implement the main operations on an elliptical curve, which are: addition of points, multiplication of points, negation of a point, and verification of belonging of a point to a certain curve. The ```Point``` and ```EllipticCurve``` objects used by the various off-chain processes are defined here.
 
 - *shamir_secret_sharing.py*: contains functions to share a certain secret $sk$ among a set of $n$ parties. Specifically, the  following functions are implemented:
@@ -75,9 +77,11 @@ The folder off_chain_code contains the process needed to interact with the deplo
   Once the value $k$ has been agreed upon, each party produces their partial signature as follows: $$s_i ​ = (m + r \cdot f(i))⋅k^{−1}\ \text{mod}\ q$$, where $m$ is the hash of the message to be signed, $k$ is the shared nonce used by the nodes to sign the message; $r$ = $x'$ is the $x$ coordinate of the point $R$.
 
   3. *Threshold Signature*: Once the partial signatures $s_i$ have been calculated, they must be combined to produce the threshold signature $\sigma$. The aggregation procedure works as follows:
-    - $$r = r_i \Longleftrightarrow r_i = r_j \forall s_i, s_j \wedge i \neq j$$;
-    - $$s = \sum_{i=1}^{t} \lambda_i \cdot s_i$$
-    - $$\sigma = (r,s)$$
+    $$ r = r_i \Longleftrightarrow r_i = r_j \forall s_i, s_j \wedge i \neq j$$;
+
+    $$ s = \sum_{i=1}^{t} \lambda_i \cdot s_i$$
+
+    $$\sigma = (r,s)$$
 
   4. *Threshold Verification*: The verification is performed using the standard ECDSA verification algorithm.
 
