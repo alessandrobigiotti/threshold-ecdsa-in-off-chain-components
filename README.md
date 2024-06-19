@@ -8,7 +8,7 @@ To find other projects implementing elliptic curve operations on Solidity, a sea
 
 The goal of the proposed library *EllipticCurveMaths.sol* is to be applicable on various Weierstrass Elliptic curves, and, at the same time, save as much gas as possible. The metrics shown in the table indicate the average gas consumed on 250 transactions carried out on a blockchain implemented with [Hyperledger Besu](https://www.hyperledger.org/projects/besu), configured as follows: five validator nodes, PoA consensus algorithm based on IBFT 2.0, block generation time of 2 seconds, 2GB EVM stack, gas-free (maximum gas limit per block).
 
-The Table shows the gas consumed by individual operations on each elliptic curve indicated. The performance of the proposed library, *EllipticCurveMath.sol*, was compared to other open source implementations found on Github. The symbol "-" means "Not applicable" and the symbol X means "Operation not provided".
+The Table shows the gas consumed by individual operations on each elliptic curve indicated. The performance of the proposed library, *EllipticCurveMath.sol*, was compared to other open source implementations found on Github. The symbol "-" means "Not applicable" and the symbol "X" means "Operation not provided".
 
 The operations indicated mean: $k^{-1}$ (mod $q$) the inverse in modulus of a number greater than 250 bits, where $q$ is the order of the finite field $F_q$; $2 \cdot P$ is the calculation of double a point; $P_1+P_2$ is the point addition; $k \cdot G$ is the scalar multiplication between a value $k$ larger than 250bits and the generator $G$ of the specific curve; $u_1 \cdot G + u_2 \cdot P_k$ is the sum of two scalar product, conducted using the interleaved scalar multiplication algorithm, where both $u_1$ and $u_2$ are larger than 250 bits, $G$ is the generator of the curve and $P_k$ is a valid public key.
 
@@ -73,6 +73,10 @@ The folder off_chain_code contains the process needed to interact with the deplo
   2. *Partial Signatures*: each party selects a secret nonce $k_i$ and produces its commitment on the nonce by computing the point $R_i$ = $k_i$ $\cdot$ $G$. Once the commitments have been collected, the point $$R = (x', y') = \sum_{i=1}^{t} R_i$$ is calculated, then the value $x'$ is taken as the agreed parameter for the calculation of partial signatures.
 
   Once the value $k$ has been agreed upon, each party produces their partial signature as follows: $$s_i ​ = (m + r \cdot f(i))⋅k^{−1}\ \text{mod}\ q$$, where $m$ is the hash of the message to be signed, $k$ is the shared nonce used by the nodes to sign the message; $r$ = $x'$ is the $x$ coordinate of the point $R$.
+
+  3. *Threshold Signature*: Once the partial signatures $s_i$ have been calculated, they must be combined to produce the threshold signature $\sigma$. The aggregation procedure works as follows:
+    - $r$ = $r_i$ $\Longleftrightarrow$ $r_i$ = $r_j$ $\forall$ $s_i$, $s_j$ $\wedge$ $i \neq j$;
+    - f
 
 
 
