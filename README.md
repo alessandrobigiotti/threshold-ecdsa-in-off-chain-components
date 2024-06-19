@@ -70,6 +70,8 @@ The folder off_chain_code contains the process needed to interact with the deplo
 
   If both equalities are verified, the sharing of the secret between the various parties has occurred correctly.
 
+  2. *Partial Signatures*: each party selects a secret nonce $k_i$ and produces its commitment on the nonce by computing the point $R_i$ = $K_i$ $\cdot$ $G$. Once the commitments have been collected, the point $$R = (x', y') = \sum_{i=1}^{t} R_i$$ is calculated, then the value $x'$ is taken as the agreed parameter for the calculation of partial signatures.
+
 
 
 (fast ECDSA) https://eprint.iacr.org/2019/114.pdf

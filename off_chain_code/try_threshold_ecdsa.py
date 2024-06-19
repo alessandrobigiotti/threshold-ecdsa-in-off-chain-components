@@ -9,7 +9,6 @@ from typing import Optional, List, Tuple
 from elliptic_curve_operations import Point, EllipticCurve, ecdsa_sign, ecdsa_verify
 from shamir_secret_sharing import generate_polynomial, evaluate_polynomial, share_secret, reconstruct_secret, lagrange_coefficient
 
-
 # Function to sign a message
 def partial_ecdsa_sign(sk, hash, k, curve):
     hash_int = int.from_bytes(hash, "big")
@@ -86,11 +85,7 @@ nonce_commitments = []
 for i in range(n):
     nonce_commitments.append(curve.multiply_point(nonces[i], curve.G))
 
-combined_nonce = Point()
-for index in ids_signers:
-    combined_nonce = curve.add_points(combined_nonce, nonce_commitments[index-1])
-
-k = sum(s for s in nonces) % curve.n
+k = sum(s.x for s in nonce_commitments) % curve.n
 
 
 z = int.from_bytes(hash, "big")
