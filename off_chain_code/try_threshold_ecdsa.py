@@ -7,7 +7,7 @@ from web3 import Web3
 from dataclasses import dataclass
 from typing import Optional, List, Tuple
 from elliptic_curve_operations import Point, EllipticCurve, ecdsa_sign, ecdsa_verify
-from shamir_secret_sharing import generate_polynomial, evaluate_polynomial, share_secret, reconstruct_secret, lagrange_coefficient
+from shamir_secret_sharing import generate_polynomial, evaluate_polynomial, share_secret, lagrange_coefficient
 
 # Function to sign a message
 def partial_ecdsa_sign(sk, hash, k, curve):
@@ -64,16 +64,16 @@ print("Public keys:", public_keys)
 ids_signers = random.sample(ids, t)
 
 rec_sk = 0
-for index in ids_sign:
-    rec_sk = (rec_sk + (lagrange_coefficient(index, ids_sign, curve) * shares[index-1][1]) % curve.n) % curve.n
+for index in ids_signers:
+    rec_sk = (rec_sk + (lagrange_coefficient(index, ids_signers, curve) * shares[index-1][1]) % curve.n) % curve.n
 
 assert rec_sk == secret
 
 global_pk = curve.multiply_point(secret, curve.G)
 
 rec_pk = Point()
-for index in ids_sign:
-    rec_pk = curve.add_points(rec_pk, curve.multiply_point(lagrange_coefficient(index, ids_sign, curve), public_keys[index-1]))
+for index in ids_signers:
+    rec_pk = curve.add_points(rec_pk, curve.multiply_point(lagrange_coefficient(index, ids_signers, curve), public_keys[index-1]))
 
 assert global_pk.x == rec_pk.x and global_pk.y == rec_pk.y
 
