@@ -117,7 +117,25 @@ Specifying the name of the specific network.
 
 ***NOTICE:*** If you want to test the smart contracts on [Remix IDE](https://remix.ethereum.org/) it is mandatory to enable the optimiser under advanced settings!
 
-##
+## Development Plan
+
+The project is constantly evolving and involves the following steps:
+
+- :ballot_box_with_check: Optimising operations for verifying an ECDSA-based digital signature on smart contracts
+
+- :ballot_box_with_check: Design and development of interface smart contracts *SourceSmartContract* and *TargetSmartContract*
+
+- :ballot_box_with_check: Procedures for generating and verifying a simple ECDSA threshold for off-chain processes
+
+- :arrows_counterclockwise: Introduction of multi threading processes for the generation of a threshold signature based on ECDSA
+
+- :white_square_button: Procedures for generating and verifying the threshold signature scheme proposed by the authors of [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909)
+
+- :white_square_button: Introduction of multi threading processes for the generation of a [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909) threshold signature based on ECDSA
+
+- :white_square_button: Connect multithreaded processes to their respective smart contacts of interconnected blockchains
+
+
 
 ## Disclaimer
 THIS SOFTWARE IS PROVIDED AS IS WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
