@@ -41,7 +41,7 @@ Compared with [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/b
 
 ## Project Structure
 
-This section explains the project structure, the main folders and describes the files content. The project contains smart contracts to be deployed on a evm-based blockchain, and it is structured according to the best practice adopted by [nodejs](https://nodejs.org/en) and the deployment of the smart contracts was carried out via [truffle](https://archive.trufflesuite.com/docs/truffle/quickstart/). The interaction to smart contracts and the off-chain processes are implemented using python.
+This section explains the project structure, the main folders and describes the files content. The project contains smart contracts to be deployed on a evm-based blockchain, and it is structured according to the best practice adopted by [nodejs](https://nodejs.org/en) and the deployment of the smart contracts was carried out via [truffle](https://archive.trufflesuite.com/docs/truffle/quickstart/). The interaction to smart contracts and the off-chain processes are implemented using [Python](https://web3py.readthedocs.io/en/stable/).
 
 ### On-Chain code
 
@@ -71,7 +71,7 @@ The folder off_chain_code contains the process needed to interact with the deplo
 - *try_simple_threshold_ecdsa.py*: this function simulates an ECDSA-based threshold digital signature. The secp256k1 elliptic curve is used in the simulation, the number of nodes $n$ is 10 and the threshold $t$ is 7. The algorithm used involves the following steps:
   1. *Key Distribution*: select a random number $sk$ (mod $p$), i.e., the secret to share. Using the procedures implemented in the *shamir_secret_sharing.py* file, the secret is divided into $n$ shares of the type ($i$, $f$($i$)), where $f$ is a polynomial of degree ($t-1$ ) randomly generated where $f(0)$ = $sk$. Each node calculates its own public key $pk_i$ = $f(i)$ $\cdot$ $G$, where $G$ is the generator point of the curve.
 
-  After generating the shares and public keys, the procedure verifies their correctness, that is: $$sk = \sum_{i=1}^{t} \lambda_i \cdot f(i)$$ where, $\lambda_i$ is the lagrange coefficient. Then verify that the global public key is calculated correctly: $$sk \cdot G = \sum_{i=0}^{t} \lambda_i \cdot pk_i$$, where, $pk_i$ are the individual public keys of the individual parties.
+  After generating the shares and public keys, the procedure verifies their correctness, that is: $$sk = \sum_{i=1}^{t} \lambda_i \cdot f(i)$$ where, $\lambda_i$ is the lagrange coefficient. Then verify that the global public key is calculated correctly: $$sk \cdot G = \sum_{i=1}^{t} \lambda_i \cdot pk_i$$, where, $pk_i$ are the individual public keys of the individual parties.
 
   If both equalities are verified, the sharing of the secret between the various parties has occurred correctly.
 
