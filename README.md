@@ -3,6 +3,25 @@
 The repository contains the code to implement an interoperability protocol between permissioned blockchains. Each blockchain has its own off-cahin component that is responsible for regulating user activities and finalizing inter-chain transactions. Currently the use case for synchronisation between two smart contracts resident on two different blockchains is provided. The idea of ​​the protocol and how inter-chain transactions are handled by off-chain components is illustrated in the following figure.
 ![alt text](https://github.com/alessandrobigiotti/threshold-ecdsa-in-off-chain-components/blob/main/img/img.png)
 
+The protocol involves three transactions to finalise an inter-chain transaction, which are: 1st transaction on the *SourceSmartContract* which initiates an inter-chain transaction, 2nd transaction on the *TargetSmartContract* which executes an inter-chain transaction in the destination blockchain, 3rd transaction on the *SourceSmartContract* as a completion ack. The off-chain components do not use consensus protocols, but are based on an ECDSA-based threshold digital signature.
+
+### Roadmap
+
+The project is constantly evolving and involves the following steps:
+
+- :ballot_box_with_check: Optimising operations for verifying an ECDSA-based digital signature on smart contracts
+
+- :ballot_box_with_check: Design and development of interface smart contracts *SourceSmartContract* and *TargetSmartContract*
+
+- :ballot_box_with_check: Procedures for generating and verifying a simple ECDSA threshold for off-chain processes
+
+- :arrows_counterclockwise: Introduction of multi threading processes for the generation of a threshold signature based on ECDSA
+
+- :white_square_button: Procedures for generating and verifying the threshold signature scheme proposed by the authors of [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909)
+
+- :white_square_button: Introduction of multi threading processes for the generation of a [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909) threshold signature based on ECDSA
+
+- :white_square_button: Connect multithreaded processes to their respective smart contacts of interconnected blockchains
 
 ## Optimised Elliptic Curve Operations
 
@@ -41,11 +60,16 @@ To improve performance compared to the libraries [MerklePlant](https://github.co
 
 Compared with [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)' implementation, the proposed solution aims to be applicable to several Weierstrass Elliptic Curves defined in a finite field $F_q$. The authors were able to exploit some assumptions on the properties of the adopted curve (secp256r1) which allow saving some computations and some checks, saving further gas. To extend the applicability to any elliptic curve it is inevitable to sacrifice some gas.
 
+The limitation of 16 state variables in the Solidity functions constitutes an impediment to the application of complex functions and calculations, such as those required for the verification of an elliptic curve-based signature. To make the procedures more efficient, it is mandatory to use the projective plane and calculate the points in affine coordinates. The proposed implementation makes use of [Jacobian coordinates](https://eprint.iacr.org/2014/1014.pdf). A further optimisation consists in adopting [Chudnovsky coordinates](https://eprint.iacr.org/2007/286.pdf), limiting the calculations for updates of the projective z coordinate (as made by [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)). However, generalising the applicability to different curves inevitably introduces a series of computations that make Chudnovsky's application impossible. Introducing Chudnovsky coordinates requires the use of 17 state variables, leading to a compilation error.
+
+
 ## Project Structure
 
-This section explains the project structure, the main folders and describes the files content. The project contains smart contracts to be deployed on a evm-based blockchain, and it is structured according to the best practice adopted by [nodejs](https://nodejs.org/en) and the deployment of the smart contracts was carried out via [truffle](https://archive.trufflesuite.com/docs/truffle/quickstart/). The interaction to smart contracts and the off-chain processes are implemented using [Python](https://web3py.readthedocs.io/en/stable/).
+This section explains the project structure, the main folders and describes the files content.
 
 ### On-Chain code
+
+The project contains smart contracts to be deployed on a evm-based blockchain, and it is structured according to the best practice adopted by [nodejs](https://nodejs.org/en) and the deployment of the smart contracts was carried out via [truffle](https://archive.trufflesuite.com/docs/truffle/quickstart/).
 
 The folder contracts contain the smart contracts to compute the elliptic curve operations and to verify a threshold signature based on ECDSA. All smart contracts are located under the ```contract/appContracts``` folder. In particular:
 - *CompareECC.sol*: Contains calls to other smart contracts that implement generic operations on elliptic curves. This smart contract allows you to evaluate the gas consumed by the proposed library (EllipticCurveMaths.sol) compared to libraries found in literatures. In particular, the implementations of Repo1: [Witenet Foundation](https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol), Repo2: [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol) and Repo3: [MerklePlant](https://github.com/verklegarden/crysol/blob/main/src/onchain/secp256k1/Secp256k1Arithmetic.sol).
@@ -58,6 +82,8 @@ The folder contracts contain the smart contracts to compute the elliptic curve o
 
 
 ### Off-chain code
+
+The interaction to smart contracts and the off-chain processes are implemented using [Python](https://web3py.readthedocs.io/en/stable/).
 
 The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures. In particular:
 
@@ -118,26 +144,6 @@ truffle migrate --reset --network=<network-name>
 Specifying the name of the specific network.
 
 ***NOTICE:*** If you want to test the smart contracts on [Remix IDE](https://remix.ethereum.org/) it is mandatory to enable the optimiser under advanced settings!
-
-## Development Plan
-
-The project is constantly evolving and involves the following steps:
-
-- :ballot_box_with_check: Optimising operations for verifying an ECDSA-based digital signature on smart contracts
-
-- :ballot_box_with_check: Design and development of interface smart contracts *SourceSmartContract* and *TargetSmartContract*
-
-- :ballot_box_with_check: Procedures for generating and verifying a simple ECDSA threshold for off-chain processes
-
-- :arrows_counterclockwise: Introduction of multi threading processes for the generation of a threshold signature based on ECDSA
-
-- :white_square_button: Procedures for generating and verifying the threshold signature scheme proposed by the authors of [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909)
-
-- :white_square_button: Introduction of multi threading processes for the generation of a [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909) threshold signature based on ECDSA
-
-- :white_square_button: Connect multithreaded processes to their respective smart contacts of interconnected blockchains
-
-
 
 ## Disclaimer
 THIS SOFTWARE IS PROVIDED AS IS WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
