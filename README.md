@@ -15,13 +15,17 @@ The project is constantly evolving and involves the following steps:
 
 - :ballot_box_with_check: Procedures for generating and verifying a simple ECDSA threshold for off-chain processes
 
-- :arrows_counterclockwise: Introduction of multi threading processes for the generation of a threshold signature based on ECDSA
+- :ballot_box_with_check: Introduction of multi threading processes for the generation of a threshold signature based on ECDSA
 
-- :white_square_button: Procedures for generating and verifying the threshold signature scheme proposed by the authors of [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909)
+- :arrows_counterclockwise: Procedures for generating and verifying the threshold signature scheme proposed by the authors of [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909)
 
 - :white_square_button: Introduction of multi threading processes for the generation of a [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909) threshold signature based on ECDSA
 
 - :white_square_button: Connect multithreaded processes to their respective smart contacts of interconnected blockchains
+
+- :white_square_button: Extend the use cases covered by the *SourceSmartContract* and the *TargetSmartContract*
+
+- :white_square_button: Replace multi threading processes with a real peer-to-peer network
 
 ## Optimised Elliptic Curve Operations
 

@@ -87,7 +87,6 @@ for i in range(n):
 
 k = sum(s.x for s in nonce_commitments) % curve.n
 
-
 z = int.from_bytes(hash, "big")
 
 partial_signatures = []
