@@ -4,3 +4,5 @@
 **/contractAddresses/
 **.csv
 **/scripts/
+**/__pycache__/
+**-lock**
