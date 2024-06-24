@@ -2,7 +2,8 @@ const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 // URL test networks
 // Local besu implementation
-var besu_testnet = 'http://localhost:8454' // replace with the local besu RPC
+var besu_testnet_1 = 'http://localhost:8454' // replace with the local besu RPC
+var besu_testney_2 = 'http://localhost:8455' // replace with the local besu RPC
 // Ethereum Sepolia testnet -> use your API-KEY
 var eth_sepolia_testnetwork = 'https://eth-sepolia.g.alchemy.com/v2/<API-KEY>'
 // Polygon Amoy testnet -> use your API-KEY
@@ -15,7 +16,8 @@ var shimmer_testnet = 'https://json-rpc.evm.testnet.shimmer.network/' // this te
 
 // The private keys should be stored in another way, it is just for demostrative purposes
 // Put in the following array the private keys used for deployment or load them from environment
-var besuKey = ['<Private Key for Besu chain>'];
+var besuKey1 = ['<Private Key for Besu chain>'];
+var besuKey2 = ['<Private Key for Besu chain>'];
 var ethereumKey = ['<Private Key for Ethereum Sepolia>']
 var optimismKey = ['<Private Key for Optimism Sepolia>']
 var polygonKey = ['<Private Key for Polygon Amoy>']
@@ -33,8 +35,18 @@ module.exports = {
     networks: {
         // List of networks configured for deployment
         // Specify the network while running truffle migrate (e.g truffle migrate --reset --network=eth_sepolia)
-        besu: { // network-name: besu
-            provider: () => new HDWalletProvider(besuKey, besu_testnet),
+        besu1: { // network-name: besu
+            provider: () => new HDWalletProvider(besuKey1, besu_testnet_1),
+            from: '<Public address related to besuKey>',
+            network_id: 112233,       // Put the ID of the local besu blockchain
+            gas: "0x1ffffffffffffe",  // besu configured as gas free. Replace with gas limit for a classic configuration
+            gasPrice: "0",            // 0 for gas free. Check the current gas or remove it for classic consiguration
+            websocket:false,          // enable deploy via websocket connection
+            skipDryRun: true          // Skip dry run before migrations? (default: false for public nets)
+        },
+
+        besu2: { // network-name: besu
+            provider: () => new HDWalletProvider(besuKey2, besu_testney_2),
             from: '<Public address related to besuKey>',
             network_id: 112233,       // Put the ID of the local besu blockchain
             gas: "0x1ffffffffffffe",  // besu configured as gas free. Replace with gas limit for a classic configuration
@@ -46,7 +58,7 @@ module.exports = {
         eth_sepolia: { // network-name: eth_sepolia
             provider: () => new HDWalletProvider(ethereumKey, eth_sepolia_testnetwork),
             from: '<Public address related to ethereumKey>', // Put here the public address of the ethereumKey
-            network_id: 11155111, // Ethereum Sepolia chain id
+            network_id: 113322, // Ethereum Sepolia chain id
             gas: 5000000,         // gas limit
             confirmations: 1,     // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 200,   // # of blocks before a deployment times out  (minimum/default: 50)

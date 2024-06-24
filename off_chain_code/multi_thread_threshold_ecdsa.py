@@ -152,14 +152,14 @@ if __name__ == '__main__':
     ###############################################################
     # Specify the blockchain to interact with
     ###############################################################
-    network='besu'
+    network='besu1'
     path_compiled_verify_threshold = os.path.abspath('../threshold-ecdsa-in-off-chain-components/build/contracts/VerifyThresholdECDSA.json')
     path_address = os.path.abspath('../threshold-ecdsa-in-off-chain-components/contractAddresses/'+network+'/addresses.json')
 
-    #websoket = config.ws_besu
-    websocket = config.ws_besu
-    #prv_key = config.besu_pk
-    prv_key = config.besu_pk
+    # websoket connection for the sepcific blockchain
+    websocket = config.ws_besu_1
+    # prv_key related to the specific conenction
+    prv_key = config.besu_1_sk
 
     ################################################################
     # NOTA: For blockchains that use PoA-type consensus algorithms,

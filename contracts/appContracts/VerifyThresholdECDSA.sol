@@ -51,6 +51,7 @@ contract VerifyThresholdECDSA {
 
     // A variable needed to compute the gas consumption of the method: verifyECDSA
     bool public checkECDSA;
+
     // Store the public key of the off-cahin component
     uint256 public Px = 108169464601335927917081726752577969247086109515075234060395755233675910322491;
     uint256 public Py = 22464450346750730310129665165845391043579291937531806120449729571760363935549;
@@ -101,12 +102,13 @@ contract VerifyThresholdECDSA {
      * It then computes u1 = H(m) * s^-1 and u2 = r * s^-1 where m is the message to be signed.
      * The function then uses interleaved scalar multiplication on Jacobian coordinates to compute fx = ecmul(u1, u2).
      * The signature is valid if and only if fx == r holds true.
-     *
-     * This function is used only for testing purposes
-     *
+     * ******  _______________________________________________
+     * NOTICE: This function is used only for testing purposes
+     * ******  °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
      * @param _nonce Nonce of the transaction.
-     * @param _sender Address of the sender.
-     * @param val Value associated with the transaction.
+     * @param val1 First integer of 250 bits
+     * @param val2 Second integer of 250 bits
+     * @param val3 random string
      * @param r First coordinate of the public key used for signing.
      * @param s Second coordinate of the public key used for signing.
      *
