@@ -1,7 +1,7 @@
 {
-  "name": "Threshold ECDSA in Off-chain Components",
+  "name": "OffChainThresholdECDSA",
   "version": "0.1.0",
-  "description": "Use a threshold ECDSA in off-chain component to manage inter-chain transaction",
+  "description": "Verify a threshold ECDSA on smart contracts in inter-chain transactions",
   "directoreis": {
     "test": "test"
   },
