@@ -135,7 +135,7 @@ In particular:
       - (2.3) The set {$\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}$} is broadcasted in the blockchain network.
     - (3) Each node, upon receiving the shares, verifies its correctness:
       - (3.1) $P_j$ receives the secret share $s_{ij}$ from other nodes.
-      - (3.2) Node $P_j$ uses the broadcast information $\{\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}\}$ to verify the equality: $$s_{ij} \cdot G$$
+      - (3.2) Node $P_j$ uses the broadcast information $\{\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}\}$ to verify the equality: $$s_{ij} \cdot G = \sum_{\mu=0}^{t-1}$$
        If this equality holds, the secret share $s_{ij}$ is valid; otherwise, it is invalid.
       - (3.3) After verifying the shares, node $P_j$ calculates its own public key $PK_j$ and private key $SK_j$ as:
        $$SK_j = \sum_{u=1}^n s_{uj}, \quad PK_j = SK_j \cdot G$$
