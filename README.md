@@ -69,7 +69,7 @@ To improve performance compared to the libraries [MerklePlant](https://github.co
 
 Compared with [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)' implementation, the proposed solution aims to be applicable to several Weierstrass Elliptic Curves defined in a finite field $F_q$. The authors were able to exploit some assumptions on the properties of the adopted curve (secp256r1) which allow saving some computations and some checks, saving further gas. To extend the applicability to any elliptic curve it is inevitable to sacrifice some gas.
 
-The limitation of 16 state variables in the Solidity functions constitutes an impediment to the application of complex functions and calculations, such as those required for the verification of an elliptic curve-based signature. To make the procedures more efficient, it is mandatory to use the projective plane and calculate the points in affine coordinates. The proposed implementation makes use of [Jacobian coordinates](https://eprint.iacr.org/2014/1014.pdf). A further optimisation consists in adopting [Chudnovsky coordinates](https://eprint.iacr.org/2007/286.pdf), limiting the calculations for updates of the projective $z$ coordinate (as made by [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)). However, generalising the applicability to different curves inevitably introduces a series of computations that make Chudnovsky's application impossible. Introducing Chudnovsky coordinates in a generalised implementation requires the use of 17 state variables, leading to a compilation error.
+The limitation of 16 state variables in the Solidity functions constitutes an impediment to the application of complex functions and calculations, such as those required for the verification of an elliptic curve-based signature. To make the procedures more efficient, it is mandatory to use the projective plane and calculate the points in affine coordinates. The proposed implementation makes use of [Jacobian coordinates](https://eprint.iacr.org/2014/1014.pdf). A further optimisation consists in adopting [Chudnovsky coordinates](https://eprint.iacr.org/2007/286.pdf), limiting the calculations for updates of the projective $z$ coordinate (as made by [Renaud Dubois](https://github.com/rdubois-crypto/FreshCryptoLib/blob/master/solidity/src/FCL_elliptic.sol)). However, generalising the applicability to different curves inevitably introduces a series of computations that make Chudnovsky's application impossible. At the current state it is not possible to introduce the [Chudnovsky coordinates](https://eprint.iacr.org/2007/286.pdf) as they would require the use of 17 state variables, leading to a compilation error. There are also other schemes for elliptic curve calculation that aim to further optimise performance. However, such schemes require numerous intermediate calculations to be kept in memory, and this is currently not possible due to some limitations of Solidity.
 
 ## Project Structure
 
@@ -195,10 +195,6 @@ To install python you can use [Anaconda](https://docs.anaconda.com/anaconda/inst
 After the installation is successful, you need to install the additional packages by typing the command from the root folder:
 ```
 pip install requirements.txt
-```
-Once the installation is successful you can run the python scripts by typing the commands:
-```
-python ./off_chain_code/<script_name.py>
 ```
 
 ***NOTICE:*** To run the code correctly, pay close attention to the connected blockchains, where the smart contacts have been deployed, and the elliptic curves used.

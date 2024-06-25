@@ -2,60 +2,54 @@ import sys
 sys.path.insert(1, '../threshold-ecdsa-in-off-chain-components/off_chain_code')
 from web3 import Web3
 from elliptic_curve_operations import EllipticCurve, Point, ecdsa_sign, ecdsa_verify
-from shamir_secret_sharing import generate_polynomial, evaluate_polynomial, share_secret, lagrange_coefficient
+from shamir_secret_sharing import lagrange_coefficient, share_secret, generate_polynomial, evaluate_polynomial
 from typing import List, Tuple
 import hashlib
 import secrets
-# Define your elliptic curve
-curve = EllipticCurve(
-    p=0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f,
-    a=0,
-    b=7,
-    G=Point(
-        x=55066263022277343669578718895168534326250603453777594175500187360389116729240,
-        y=32670510020758816978083085130507043184471273380659243275938904335757337482424
-    ),
-    n=0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141,
-    h=1
-)
-
-
-def verify_secret_share(s_ij: int, eta_ij: Point, eta_i: List[Point], id_j: int, curve: EllipticCurve) -> bool:
-    lhs = curve.multiply_point(s_ij, curve.G)
-    rhs = Point()
-    for mu, eta_i_mu in enumerate(eta_i):
-        rhs = curve.add_points(rhs, curve.multiply_point((id_j ** mu)%curve.n, eta_i_mu))
-    return lhs == rhs
 
 # Key generation function
 def key_gen(n: int, t: int, curve: EllipticCurve) -> Tuple[List[int], List[Point], int, Point]:
     q = curve.n
     p = curve.p
-    nodes = list(range(1, n + 1))
-    private_shares = []
-    public_shares = []
+    nodes_id = list(range(1, n + 1))
 
-    for i in nodes:
-        secret = secrets.randbelow(curve.n)
-        poly = generate_polynomial(secret, t, q)
-        si = [evaluate_polynomial(poly, j, q) for j in nodes]
-        private_shares.append(si)
-        public_shares.append([curve.multiply_point(s, curve.G) for s in si])
+    f_coefficients = []
+    mu_values = []
+    broadcast_shares = []
 
-    sk = [sum(si) % q for si in zip(*private_shares)]
-    pk = [curve.multiply_point(s, curve.G) for s in sk]
-    group_private_key = sum(poly[0] for poly in private_shares) % p
+    # Generate shares
+    for node in nodes_id:
+        f_i = generate_polynomial(secrets.randbelow(curve.n), t, curve)
+        f_coefficients.append(f_i)
 
-    group_public_key = curve.multiply_point(group_private_key, curve.G)
+        mu_i = [curve.multiply_point(coeff, curve.G) for coeff in f_i]
+        mu_values.append(mu_i)
 
-    return sk, pk, group_private_key, group_public_key
+        broadcast = dict()
+        for ids in nodes_id:
+            broadcast[ids] = evaluate_polynomial(f_i, ids, curve.n)
+        broadcast_shares.append(broadcast)
 
+    # Verify the shares
+    for i in nodes_id:
+        mu_i = mu_values[i-1]
+        for j in nodes_id:
+            s_ij = broadcast_shares[i-1][j]
+            if not verify_share(j, mu_i, s_ij, curve):
+                return None, None, None
 
-# Function to hash a message
-def hash_message(message: str) -> int:
-    # Use SHA-256 hash function for hashing the message
-    hash_digest = hashlib.sha256(message.encode()).digest()
-    return int.from_bytes(hash_digest, byteorder='big')
+    return f_coefficients, mu_values, broadcast_shares
+
+# Verify if the shares are valid
+def verify_share(idx_receiver, mu_values, share, curve):
+
+    lhs = curve.multiply_point(share, curve.G)
+    rhs = Point()
+    for i, p in enumerate(mu_values):
+        rhs = curve.add_points(rhs, curve.multiply_point(pow(idx_receiver, i, curve.n), p))
+    if lhs.x == rhs.x and lhs.y == rhs.y:
+        return True
+    return False
 
 
 # Function to generate partial signature
@@ -147,33 +141,30 @@ def verify_threshold_signature(threshold_sig: Tuple[int, int, int], message: str
 
 
 
+# Define your elliptic curve
+curve = EllipticCurve(
+    p=0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f,
+    a=0,
+    b=7,
+    G=Point(
+        x=55066263022277343669578718895168534326250603453777594175500187360389116729240,
+        y=32670510020758816978083085130507043184471273380659243275938904335757337482424
+    ),
+    n=0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141,
+    h=1
+)
+
 # Example usage
-n = 5  # number of nodes
-t = 3  # threshold
+n = 10  # number of nodes
+t = 7   # threshold
 message = "Hello, blockchain!"
 
-private_keys, public_keys, group_private_key, group_public_key, secret_shares, broadcast_values = key_gen(n, t, curve)
-#private_keys, public_keys, group_private_key, group_public_key, secret_shares, broadcast_values = key_gen_old(n, t, curve)
-private_keys
 
-public_keys
+f_coefficients, mu_values, broadcast_shares = key_gen(n, t, curve)
 
-group_private_key
-group_public_key
+if f_coefficients != None and mu_values != None and broadcast_shares != None:
+    print("All shares are valid!")
 
-ids = list(range(1, n + 1))
-
-# Verify the secret shares
-for i in range(n):
-    for j in range(n):
-        s_ij = secret_shares[i][j]
-        eta_i = broadcast_values[i]
-        id_j = ids[j]
-        eta_ij = curve.multiply_point(s_ij, curve.G)
-        assert verify_secret_share(s_ij, eta_ij, eta_i, id_j, curve), f"Share {s_ij} from Node {i+1} to Node {j+1} is invalid"
-
-print("All secret shares are valid")
-#private_keys, public_keys, group_private_key, group_public_key = key_gen(n, t, curve)
 
 # Generate partial signatures
 partial_sigs = [partial_signature(message, i + 1, private_keys[i], ids, curve) for i in range(t)]
