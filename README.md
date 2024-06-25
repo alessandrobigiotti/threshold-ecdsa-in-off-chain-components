@@ -141,8 +141,8 @@ In particular:
        $$SK_j = \sum_{u=1}^n s_{uj}, \quad PK_j = SK_j \cdot G$$
     - (4) Global public key calculation:
       - (4.1)  The signature group private key $sk$ is determined by the sum of $a_{i0}$ coefficients from all $n$ nodes: $$sk = \sum_{i=1}^n a_{i0} = F(0)$$
-       where $F(x) = \sum_{i=1}^n f_i(x)$.
-      - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$Q = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$
+       where $$F(x) = \sum_{i=1}^n f_i(x)$$.
+      - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$Q = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$$
 
 ## Deploy Configuration
 
