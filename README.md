@@ -186,5 +186,22 @@ Other networks are indicated in the ```networks``` section fo the ```truffle.js`
 
 ***NOTICE:*** If you want to test the smart contracts on [Remix IDE](https://remix.ethereum.org/) it is mandatory to enable the optimiser under advanced settings!
 
+## Off-Chain Settings
+
+Python 3.10+ is required to run off-chain processes. The only additional packages needed are ```pandas``` and ```web3```, whose versions are specified in the *requirements.txt* file.
+
+To install python you can use [Anaconda](https://docs.anaconda.com/anaconda/install/linux/) to create virtual environments or the [python](https://www.python.org/downloads/ ).
+
+After the installation is successful, you need to install the additional packages by typing the command from the root folder:
+```
+pip install requirements.txt
+```
+Once the installation is successful you can run the python scripts by typing the commands:
+```
+python ./off_chain_code/<script_name.py>
+```
+
+***NOTICE:*** To run the code correctly, pay close attention to the connected blockchains, where the smart contacts have been deployed, and the elliptic curves used.
+
 ## Disclaimer
 THIS SOFTWARE IS PROVIDED AS IS WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
