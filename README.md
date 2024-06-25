@@ -126,7 +126,22 @@ In particular:
 
 - *multi_thread_threshold_ecdsa.py*: this file contains a multi-threading application simulating the off-chain nodes implementing a threshold signature based on ECDSA. Threads are divided into a primary process and a series of secondary threads. The primary process is responsible for generating the messages to be signed, sending them to the secondary threads and waiting for the partial signatures to be produced. Each secondary node produces its own signature and returns it to the primary node. The primary node, once all the signatures have been collected, is responsible for producing the threshold signature and using it to send a transaction on the blockchain. This file was used to generate metrics relating to gas consumed on various blockchains. The threshold signature scheme adopted is the one just described.
 
-- *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out: TO FINISH...
+- *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out:
+  - *key_gen()*: This file contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
+    - (1) Each node $P_i$ generates a random polynomial as follow:  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
+    - (2) Each node $P_i$ compute its public share and broadcasts it to the other nodes:
+      - (2.1) $P_i$ calculates the secret share $s_{ij} = f_i(\text{ID}_j)$ and sends it to other nodes $P_j$ in the network.
+      - (2.2) $P_i$ also calculates $\eta_{i\mu} = a_{i\mu} \cdot G$ for $\mu = 0, 1, \ldots, t-1$, where $G$ is a generator of the elliptic curve group.
+      - (2.3) The set $\{\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}\}$ is broadcasted in the blockchain network.
+    - (3) Each node, upon receiving the shares, verifies its correctness:
+      - (3.1) $P_j$ receives the secret share $s_{ij}$ from other nodes.
+      - (3.2) Node $P_j$ uses the broadcast information $\{\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}\}$ to verify the equality:
+       $$s_{ij} G = \sum_{\mu=0}^{t-1} \eta_{i\mu} \text{ID}_j^\mu$$
+       If this equality holds, the secret share $s_{ij}$ is valid; otherwise, it is invalid.
+      - (3.3) After verifying the shares, node $P_j$ calculates its own public key $PK_j$ and private key $SK_j$ as:
+       $$SK_j = \sum_{u=1}^n s_{uj}, \quad PK_j = SK_j \cdot G$$
+    - (4) Global public key calculation:
+      - (4.1)
 
 ## Deploy Configuration
 
