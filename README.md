@@ -128,9 +128,9 @@ In particular:
 
 - *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out:
   - *key_gen()*: This file contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
-    - (1) Each node $P_i$ generates a random polynomial as follows (each $a_i \in F_p$):  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
+    - (1) Each node $P_i$ generates a random polynomial as follows (each $a_i \in F_q$):  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
     - (2) Each node $P_i$ compute its public share and broadcasts it to the other nodes:
-      - (2.1) $P_i$ calculates the secret share $s_{ij} = f_i(\text{ID}_j)$ and sends it to other nodes $P_j$ in the network.
+      - (2.1) $P_i$ calculates the secret share $s_{ij} = f_i(ID_j)$ and sends it to other nodes $P_j$ in the network.
       - (2.2) $P_i$ also calculates $\eta_{i\mu} = a_{i\mu} \cdot G$ for $\mu = 0, 1, \ldots, t-1$, where $G$ is a generator of the elliptic curve group.
       - (2.3) The set {$\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}$} is broadcasted in the blockchain network.
     - (3) Each node, upon receiving the shares, verifies its correctness:
@@ -140,7 +140,9 @@ In particular:
       - (3.3) After verifying the shares, node $P_j$ calculates its own public key $PK_j$ and private key $SK_j$ as:
        $$SK_j = \sum_{u=1}^n s_{uj}, \quad PK_j = SK_j \cdot G$$
     - (4) Global public key calculation:
-      - (4.1)
+      - (4.1)  The signature group private key $sk$ is determined by the sum of $a_{i0}$ coefficients from all $n$ nodes: $$sk = \sum_{i=1}^n a_{i0} = F(0)$$
+       where $F(x) = \sum_{i=1}^n f_i(x)$.
+      - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$Q = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$
 
 ## Deploy Configuration
 
