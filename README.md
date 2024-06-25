@@ -146,8 +146,13 @@ In particular:
 
   - *partial_signature*: This function contains the logic for calculating the partial signature for each nodes. We refer to section 4.3 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
     - (1) Each node $P_i$ select a random secret $k_i \in F_q$ and compute the hash of the message $e = H(m)$;
-    - (2) Each node $P_i$ calculates $r_i = x_i \text{mod} p$, where ($x_i, y_i$) = $k_i \cdot G$. If $r_i = 0$ return to (1);
-    - (3) Each node $P_i$ randomly selects ($\alpha_i, \beta_i$) from $Z_q$ such that: $k_i = \alpha_i r_i + \beta_i m$, then, calculates $l_i = \alpha_i r_i + e \chi_i SK_i$, where $\chi_i$ is the lagrange coefficient related to the node with index $i$.
+    - (2) Each node $P_i$ calculates $r_i = x_i\ \text{mod}\ p$, where ($x_i, y_i$) = $k_i \cdot G$. If $r_i = 0$ return to (1);
+    - (3) Each node $P_i$ randomly selects ($\alpha_i, \beta_i$) from $Z_q$ such that: $k_i = \alpha_i r_i + \beta_i m$, then, calculates $l_i = \alpha_i r_i + e \chi_i SK_i$, where $\chi_i$ is the lagrange coefficient (see the function *lagrange_coefficient* from the file *shamir_secret_sharing.py*) related to the node with index $i$;
+    - (4) Each node $P_i$ broadcasts the partial signature $\sigma_i = (r_i, l_i, \beta_i)$ to the other nodes for the verification and the final signature aggregation.
+
+  - *combine_partial_signatures*: This function contains the logic for generating the final threshold signature. We refer to section 4.4 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909).
+
+  WORK In PROGRESS....
 
 ## Deploy Configuration
 
