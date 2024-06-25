@@ -144,7 +144,7 @@ In particular:
        where $$F(x) = \sum_{i=1}^n f_i(x)$$.
       - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$P_k = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$$
 
-  - *partial_signature*: This function contains the logic for calculating the partial signature for each nodes. We refer to section 4.3 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
+  - *partial_signature*: This function contains the logic for calculating the partial signature for each node. We refer to section 4.3 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
     - (1) Each node $P_i$ select a random secret $k_i \in F_q$ and compute the hash of the message $e = H(m)$;
     - (2) Each node $P_i$ calculates $r_i = x_i\ \text{mod}\ p$, where ($x_i, y_i$) = $k_i \cdot G$. If $r_i = 0$ return to (1);
     - (3) Each node $P_i$ randomly selects ($\alpha_i, \beta_i$) from $Z_q$ such that: $k_i = \alpha_i r_i + \beta_i m$, then, calculates $l_i = \alpha_i r_i + e \chi_i SK_i$, where $\chi_i$ is the lagrange coefficient (see the function *lagrange_coefficient* from the file *shamir_secret_sharing.py*) related to the node with index $i$;
@@ -152,7 +152,7 @@ In particular:
 
   - *combine_partial_signatures*: This function contains the logic for generating the final threshold signature. We refer to section 4.4 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909).
 
-  WORK In PROGRESS....
+  WORK IN PROGRESS....
 
 ## Deploy Configuration
 
@@ -163,19 +163,26 @@ $ npm install
 Once the packages are installed it is possible to deploy and interact with the smart contracts.
 
 The Solidity compiler and blockchain configuration is found in the ```truffle-config.js``` file. In order to correctly compile and deploy the smart contracts it is necessary:
-1. Verify the imports in the smart contract *CompareECC.sol*. If the imports from the other repositories doesn't work, try downloading the smart contracts and importing them locally.
-2. Configure ```truffle-config.js``` appropriately. It involves the creation of the API-KEY to interact with the testnet blockchains and specify the local Besu blockchain. It can be done following the description within the file itself.
+1. Verify the imports in the smart contract *CompareECC.sol*. If the imports from the other repositories don't work, try downloading the smart contracts and importing them locally.
+2. Configure ```truffle-config.js``` appropriately. It involves the creation of the API-KEY to interact with the testnet blockchains and specify the local Besu blockchains. It can be done following the description within the file itself.
 
 Once the setup is completed it is possible to compile the smart contracts by typing from the root folder:
 ```
 truffle compile
 ```
-
 Then, deploy the smart contracts:
 ```
 truffle migrate --reset --network=<network-name>
 ```
-Specifying the name of the specific network.
+Specifying the name of the specific network. Example, to deply on a local besu it is sufficient to type:
+```
+truffle migrate --reset --network=besu1
+```
+While for deploying on a public testnet:
+```
+truffle migrate --reset --network=eth_sepolia
+```
+Other networks are indicated in the ```networks``` section fo the ```truffle.js``` file.
 
 ***NOTICE:*** If you want to test the smart contracts on [Remix IDE](https://remix.ethereum.org/) it is mandatory to enable the optimiser under advanced settings!
 
