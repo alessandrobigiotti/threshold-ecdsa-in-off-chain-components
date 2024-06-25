@@ -38,7 +38,13 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
-class HashThread(threading.Thread):
+#############################################################
+# This class implement the secondary nodes logic.
+# Each secondary node, after receiving the message to be signed
+# by the primary node, provides its own partial signature and
+# returns it to the primary node
+#############################################################
+class SecondaryNode(threading.Thread):
     def __init__(self, index, share, public_key, curve):
         super().__init__()
         self.index = index
@@ -78,6 +84,11 @@ class HashThread(threading.Thread):
 
             new_message_event.clear()  # Reset the event for the next round
 
+#############################################################
+# The primary thread is responsible for generating the message to be signed,
+# sending it to the secondary nodes, collecting the partial signatures and
+# calculating the threshold signature
+#############################################################
 def primary_thread(global_pk, curve, w3, verify_contract, account):
     global hash, hash_result, active_threads, nonce_commitments, partial_signatures, ids_signers, transactions_data
     time.sleep(2)
@@ -220,7 +231,7 @@ if __name__ == '__main__':
     threads = []
 
     for i in range(num_nodes-1):
-        thread = HashThread(index=i, share=shares[i], public_key=public_keys[i], curve=curve)
+        thread = SecondaryNode(index=i, share=shares[i], public_key=public_keys[i], curve=curve)
         thread.start()
         threads.append(thread)
 

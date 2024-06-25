@@ -91,7 +91,6 @@ All smart contracts are located under the ```contract/appContracts``` folder. In
 
 ### Off-chain code
 
-
 The folder off_chain_code contains the process needed to interact with the deployed smart contracts and generate threshold signatures.
 The interaction to smart contracts and the off-chain processes are implemented using [Python](https://web3py.readthedocs.io/en/stable/).
 In particular:
@@ -125,7 +124,7 @@ In particular:
 
   4. *Threshold Verification*: The verification is performed using the standard ECDSA verification algorithm.
 
-- *multi_threading_threshold_sign.py*: this file contains a multithreading application simulating the off-chain nodes implementing a threshold signature based on ECDSA. TO FINISH...
+- *multi_thread_threshold_ecdsa.py*: this file contains a multi-threading application simulating the off-chain nodes implementing a threshold signature based on ECDSA. Threads are divided into a primary process and a series of secondary threads. The primary process is responsible for generating the messages to be signed, sending them to the secondary threads and waiting for the partial signatures to be produced. Each secondary node produces its own signature and returns it to the primary node. The primary node, once all the signatures have been collected, is responsible for producing the threshold signature and using it to send a transaction on the blockchain. This file was used to generate metrics relating to gas consumed on various blockchains. The threshold signature scheme adopted is the one just described.
 
 - *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out: TO FINISH...
 
