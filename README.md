@@ -127,8 +127,8 @@ In particular:
 - *multi_thread_threshold_ecdsa.py*: this file contains a multi-threading application simulating the off-chain nodes implementing a threshold signature based on ECDSA. Threads are divided into a primary process and a series of secondary threads. The primary process is responsible for generating the messages to be signed, sending them to the secondary threads and waiting for the partial signatures to be produced. Each secondary node produces its own signature and returns it to the primary node. The primary node, once all the signatures have been collected, is responsible for producing the threshold signature and using it to send a transaction on the blockchain. This file was used to generate metrics relating to gas consumed on various blockchains. The threshold signature scheme adopted is the one just described.
 
 - *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out:
-  - *key_gen()*: This file contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
-    - (1) Each node $P_i$ generates a random polynomial as follows (each $a_i \in F_q$):  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
+  - *key_gen()*: This function contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
+    - (1) Each node $P_i$ generates a random polynomial as follows (each $a_i \in Z_q$):  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
     - (2) Each node $P_i$ compute its public share and broadcasts it to the other nodes:
       - (2.1) $P_i$ calculates the secret share $s_{ij} = f_i(ID_j)$ and sends it to other nodes $P_j$ in the network.
       - (2.2) $P_i$ also calculates $\eta_{i\mu} = a_{i\mu} \cdot G$ for $\mu = 0, 1, \ldots, t-1$, where $G$ is a generator of the elliptic curve group.
@@ -142,7 +142,12 @@ In particular:
     - (4) Global public key calculation:
       - (4.1)  The signature group private key $sk$ is determined by the sum of $a_{i0}$ coefficients from all $n$ nodes: $$sk = \sum_{i=1}^n a_{i0} = F(0)$$
        where $$F(x) = \sum_{i=1}^n f_i(x)$$.
-      - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$Q = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$$
+      - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$P_k = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$$
+
+  - *partial_signature*: This function contains the logic for calculating the partial signature for each nodes. We refer to section 4.3 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
+    - (1) Each node $P_i$ select a random secret $k_i \in F_q$ and compute the hash of the message $e = H(m)$;
+    - (2) Each node $P_i$ calculates $r_i = x_i \text{mod} p$, where ($x_i, y_i$) = $k_i \cdot G$. If $r_i = 0$ return to (1);
+    - (3) Each node $P_i$ randomly selects ($\alpha_i, \beta_i$) from $Z_q$ such that: $k_i = \alpha_i r_i + \beta_i m$, then, calculates $l_i = \alpha_i r_i + e \chi_i SK_i$, where $\chi_i$ is the lagrange coefficient related to the node with index $i$.
 
 ## Deploy Configuration
 
