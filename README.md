@@ -127,7 +127,7 @@ In particular:
 - *multi_thread_threshold_ecdsa.py*: this file contains a multi-threading application simulating the off-chain nodes implementing a threshold signature based on ECDSA. Threads are divided into a primary process and a series of secondary threads. The primary process is responsible for generating the messages to be signed, sending them to the secondary threads and waiting for the partial signatures to be produced. Each secondary node produces its own signature and returns it to the primary node. The primary node, once all the signatures have been collected, is responsible for producing the threshold signature and using it to send a transaction on the blockchain. This file was used to generate metrics relating to gas consumed on various blockchains. The threshold signature scheme adopted is the one just described.
 
 - *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out:
-  - *key_gen()*: This function contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
+  - *key_gen*: This function contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
     - (1) Each node $P_i$ generates a random polynomial as follows (each $a_i \in Z_q$):  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
     - (2) Each node $P_i$ compute its public share and broadcasts it to the other nodes:
       - (2.1) $P_i$ calculates the secret share $s_{ij} = f_i(ID_j)$ and sends it to other nodes $P_j$ in the network.
@@ -150,9 +150,10 @@ In particular:
     - (3) Each node $P_i$ randomly selects ($\alpha_i, \beta_i$) from $Z_q$ such that: $k_i = \alpha_i r_i + \beta_i m$, then, calculates $l_i = \alpha_i r_i + e \chi_i SK_i$, where $\chi_i$ is the lagrange coefficient (see the function *lagrange_coefficient* from the file *shamir_secret_sharing.py*) related to the node with index $i$;
     - (4) Each node $P_i$ broadcasts the partial signature $\sigma_i = (r_i, l_i, \beta_i)$ to the other nodes for the verification and the final signature aggregation.
 
-  - *combine_partial_signatures*: This function contains the logic for generating the final threshold signature. We refer to section 4.4 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909).
-
-  WORK IN PROGRESS....
+  - *combine_partial_signatures*: This function contains the logic for generating the final threshold signature. We refer to section 4.4 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):The signature combiner $P_c$ receives $t$ valid partial signatures $\sigma_i = (r_i, l_i, \beta_i)$, then $P_c$ works as follows:
+    - (1) Computes $\gamma_i = (l_i + \beta_i \cdot m)$ mod $p$
+    - (2) Computes the point: $$(x_i^{'}, y_i^{'}) = \gamma_i \cdot G - e \cdot \chi_i Pk_i$$ where, $G$ is the generator point of the curve, $Pk_i$ is the public key of the node $i$ and $\chi_i$ is the Lagrange coefficient of the node $i$. $P_c$ verifies if $x_i^{'}$ = $r_i$, if it holds the signature is valid;
+    - (3) Produces the threshold signature ($r$, $l$, $\beta$) as follows: $$r = \sum_{i=1}^{t} r_i;\ l = \sum_{i=1}^{t} l_i;\ \beta = \sum_{i=1}^{t} \beta_i $$
 
 ## Deploy Configuration
 
