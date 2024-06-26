@@ -157,8 +157,9 @@ In particular:
 
   - *verify_threshold_signature*: This function contains the logic for verifying the final threshold signature. We refer to section 4.5 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909): Each node in the network is equipped with the group public key $P_k$. The verification of the threshold signature involves the following steps:
     - (1) Each verifier $P_v$ computes $e = H(m)$, where $m$ is the message and $H$ is an hash function;
-    - (2) Each verifier $P_v$ computes $\gamma = (l + \beta \cdot m)$ mod $p$
-    - (3) Each verifier $P_v$ computes $(x',y') = \gamma \cdot G - e \cdot P_k$, then $v = x'$ mod $p$
+    - (2) Each verifier $P_v$ computes $\gamma = (l + \beta \cdot m)$ mod $p$;
+    - (3) Each verifier $P_v$ computes $(x',y') = \gamma \cdot G - e \cdot P_k$, then $v = x'$ mod $p$;
+    - (4) The signature is valid if and only if $v = r$.
 
 
 ## Deploy Configuration

@@ -118,23 +118,27 @@ def verify_partial_signature(r_i: int, l_i: int, beta_i: int, message: str, publ
 
     return v_i == r_i
 
-def combine_partial_signatures(partial_sigs: List[Tuple[int, int, int]], message: str, ids: List[int], public_keys: List[Point], curve: EllipticCurve) -> Tuple[int, int, int]:
-    q = curve.n
-    p = curve.p
-    e = hash_message(message)
 
+def combine_partial_signatures(partial_signs: List[Tuple[int, int, int]], message: str, signers_id: List[int], nodes_id: List[int], nodes_pk: List[Point], curve: EllipticCurve) -> Tuple[int, int, int]:
+    # Compute the hash of the message
+    hash = Web3.solidity_keccak(['string'], [message])
+    e = int.from_bytes(hash, "big")
+
+    # Initialise final signature
     r_sum = 0
     l_sum = 0
     beta_sum = 0
 
-    for i, (r_i, l_i, beta_i) in enumerate(partial_sigs):
-        pk_i = public_keys[i]
-        if not verify_partial_signature(r_i, l_i, beta_i, message, pk_i, i + 1, ids, curve):
-            raise ValueError(f"Invalid partial signature from node {ids[i]}")
+    # Verify the partial signatures
+    for i, (node_id, partial_sign) in enumerate(partial_signs):
+        r_i, l_i, beta_i = partial_sign
+        pk_i = nodes_pk[node_id-1]
+        if not verify_partial_signature(r_i, l_i, beta_i, message, pk_i, node_id, nodes_id, curve):
+            raise ValueError(f"Invalid partial signature from node {node_id}")
 
-        r_sum = (r_sum + r_i) % q
-        l_sum = (l_sum + l_i) % q
-        beta_sum = (beta_sum + beta_i) % q
+        r_sum = (r_sum + r_i) % curve.n
+        l_sum = (l_sum + l_i) % curve.n
+        beta_sum = (beta_sum + beta_i) % curve.n
 
     threshold_signature = (r_sum, l_sum, beta_sum)
     return threshold_signature
@@ -144,16 +148,19 @@ def verify_threshold_signature(threshold_sig: Tuple[int, int, int], message: str
     r, l, beta = threshold_sig
     q = curve.n
     p = curve.p
-    e = hash_message(message)
 
-    gamma = (l + beta * e) % q
+    # Compute the hash of the message
+    hash = Web3.solidity_keccak(['string'], [message])
+    e = int.from_bytes(hash, "big")
+
+    gamma = (l + beta * e) % curve.n
 
     gamma_point = curve.multiply_point(gamma, curve.G)
     eQ = curve.multiply_point(e, group_public_key)
-    eQ_neg = Point(eQ.x, -eQ.y % p)
+    eQ_neg = Point(eQ.x, (-eQ.y % curve.p))
     combined_point = curve.add_points(gamma_point, eQ_neg)
 
-    v = combined_point.x % p
+    v = combined_point.x  % curve.p
 
     return r == v
 
@@ -186,20 +193,12 @@ if f_coefficients != None and mu_values != None and broadcast_shares != None:
 
 # Define the signature nodes and produce the partial signatures
 signers_id = random.sample(nodes_id, t)
-partial_signs = [(node_id, partial_signature(message, node_id, nodes_sk[node_id-1], nodes_id, curve)) for node_id in signers_id]
-
-for i, (node_id, partial_sign) in enumerate(partial_signs):
-    r_i, l_i, beta_i = partial_sign
-    pk_i = nodes_pk[node_id-1]
-    print(verify_partial_signature(r_i, l_i, beta_i, message, pk_i, node_id, nodes_id, curve))
-
-
+partial_signs = [(node_id, partial_signature(message, node_id, nodes_sk[node_id-1], signers_id, curve)) for node_id in signers_id]
 
 # Combine partial signatures to create a threshold signature
-threshold_sig = combine_partial_signatures(partial_sigs, message, ids, public_keys, curve)
-
-print(f"Threshold Signature: {threshold_sig}")
+threshold_sign = combine_partial_signatures(partial_signs, message, signers_id, signers_id, nodes_pk, curve)
+print(f"Threshold Signature: {threshold_sign}")
 
 # Verify the threshold signature
-is_valid = verify_threshold_signature(threshold_sig, message, group_public_key, curve)
+is_valid = verify_threshold_signature(threshold_sign, message, group_pk, curve)
 print(f"Threshold Signature Valid: {is_valid}")
