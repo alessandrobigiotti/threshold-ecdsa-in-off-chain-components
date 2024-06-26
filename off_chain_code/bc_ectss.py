@@ -8,18 +8,15 @@ import random
 import secrets
 
 # Key generation function
-def key_gen(n: int, t: int, curve: EllipticCurve) -> Tuple[List[int], List[Point], int, Point]:
-
-    nodes_id = list(range(1, n + 1))
+def key_gen(nodes_id: List[int], n: int, t: int, curve: EllipticCurve) -> Tuple[List[int], List[Point], int, Point]:
 
     f_coefficients = []
     mu_values = []
     broadcast_shares = []
-    nodes_sk = []
+    nodes_sk = [0] * n
     nodes_pk = []
     group_sk = 0
     group_pk = Point()
-
 
     for node in nodes_id:
         # Step (1): Generate random polinomyal for each node
@@ -42,23 +39,23 @@ def key_gen(n: int, t: int, curve: EllipticCurve) -> Tuple[List[int], List[Point
             if not verify_share(j, mu_i, s_ij, curve):
                 return None, None, None
 
-    # Step(3.1-3.2): Generate individual public and private keys
-    for coeffs in f_coefficients:
-        nodes_sk.append(coeffs[0])
-        nodes_pk.append(curve.multiply_point(coeffs[0], curve.G))
-        # Step (4.1): Compute global private key
-        group_sk = (group_sk + coeffs[0]) % curve.n
+    # Step (4): Compute the private keys and public keys for each node
+    for i in nodes_id:
+        for j in nodes_id:
+            s_ij = broadcast_shares[j-1][i]
+            nodes_sk[i-1] = (nodes_sk[i-1] + s_ij) % curve.n
+        nodes_pk.append(curve.multiply_point(nodes_sk[i-1], curve.G))
 
-    # Step (4.2): Compute the global public key
-    for pk in nodes_pk:
-        group_pk = curve.add_points(group_pk, pk)
+    group_sk = sum(coeff[0] for coeff in f_coefficients) % curve.n
+    group_pk = curve.multiply_point(group_sk, curve.G)
 
-    # Verify correctness of public and private keys
-    check_group_pk = curve.multiply_point(group_sk, curve.G)
-    if check_group_pk.x == group_pk.x and check_group_pk.y == group_pk.y:
-        print("Global and individual keys generated correctly!")
+    # Randomly select a subset of signer nodes and verify the group public and private key
+    for i in range(t):
+        id_signers = random.sample(nodes_id, t)
+        if not verify_group_keys(group_sk, group_pk, nodes_sk, nodes_pk, id_signers, curve):
+            return None, None, None
 
-    return f_coefficients, mu_values, broadcast_shares, nodes_sk, nodes_pk, group_pk
+    return f_coefficients, mu_values, broadcast_shares, nodes_sk, nodes_pk, group_sk, group_pk
 
 # Verify if the shares are valid
 def verify_share(idx_receiver, mu_values, share, curve):
@@ -70,6 +67,19 @@ def verify_share(idx_receiver, mu_values, share, curve):
         return True
     return False
 
+# Verify the group private and public keys
+def verify_group_keys(group_sk, group_pk, nodes_sk, nodes_pk, id_sign, curve):
+    check_sk = sum(nodes_sk[id-1] * lagrange_coefficient(id, id_sign, curve) for id in id_sign) % curve.n
+    if not check_sk == group_sk:
+        return False
+
+    check_pk = Point()
+    for id in id_sign:
+        check_pk = curve.add_points(check_pk, curve.multiply_point(lagrange_coefficient(id, id_sign, curve), nodes_pk[id-1]))
+    if not check_pk.x == group_pk.x and check_pk.y == group_pk.y:
+        return False
+
+    return True
 
 # Function to generate partial signature
 def partial_signature(message: str, node_id: int, sk_i: int, ids: List[int], curve: EllipticCurve) -> Tuple[int, int, int]:
@@ -119,7 +129,7 @@ def verify_partial_signature(r_i: int, l_i: int, beta_i: int, message: str, publ
     return v_i == r_i
 
 
-def combine_partial_signatures(partial_signs: List[Tuple[int, int, int]], message: str, signers_id: List[int], nodes_id: List[int], nodes_pk: List[Point], curve: EllipticCurve) -> Tuple[int, int, int]:
+def combine_partial_signatures(partial_signs: List[Tuple[int, int, int]], message: str, nodes_id: List[int], nodes_pk: List[Point], curve: EllipticCurve) -> Tuple[int, int, int]:
     # Compute the hash of the message
     hash = Web3.solidity_keccak(['string'], [message])
     e = int.from_bytes(hash, "big")
@@ -128,7 +138,6 @@ def combine_partial_signatures(partial_signs: List[Tuple[int, int, int]], messag
     r_sum = 0
     l_sum = 0
     beta_sum = 0
-
     # Verify the partial signatures
     for i, (node_id, partial_sign) in enumerate(partial_signs):
         r_i, l_i, beta_i = partial_sign
@@ -153,14 +162,14 @@ def verify_threshold_signature(threshold_sig: Tuple[int, int, int], message: str
     hash = Web3.solidity_keccak(['string'], [message])
     e = int.from_bytes(hash, "big")
 
-    gamma = (l + beta * e) % curve.n
+    gamma = (l + beta * e) % curve.p
 
     gamma_point = curve.multiply_point(gamma, curve.G)
     eQ = curve.multiply_point(e, group_public_key)
     eQ_neg = Point(eQ.x, (-eQ.y % curve.p))
-    combined_point = curve.add_points(gamma_point, eQ_neg)
+    combined_point = curve.add_points(gamma_point, eQ)
 
-    v = combined_point.x  % curve.p
+    v = combined_point.x % curve.p
 
     return r == v
 
@@ -181,22 +190,18 @@ curve = EllipticCurve(
 
 # Example usage
 n = 10  # number of nodes
-t = 7   # threshold
+t = 7  # threshold
 message = "Hello, blockchain!"
 nodes_id = list(range(1, n + 1))
 
-f_coefficients, mu_values, broadcast_shares, nodes_sk, nodes_pk, group_pk = key_gen(n, t, curve)
-
-if f_coefficients != None and mu_values != None and broadcast_shares != None:
-    print("All shares are valid!")
-
+f_coefficients, mu_values, broadcast_shares, nodes_sk, nodes_pk, group_sk, group_pk = key_gen(nodes_id, n, t, curve)
 
 # Define the signature nodes and produce the partial signatures
 signers_id = random.sample(nodes_id, t)
 partial_signs = [(node_id, partial_signature(message, node_id, nodes_sk[node_id-1], signers_id, curve)) for node_id in signers_id]
-
+partial_signs
 # Combine partial signatures to create a threshold signature
-threshold_sign = combine_partial_signatures(partial_signs, message, signers_id, signers_id, nodes_pk, curve)
+threshold_sign = combine_partial_signatures(partial_signs, message, signers_id, nodes_pk, curve)
 print(f"Threshold Signature: {threshold_sign}")
 
 # Verify the threshold signature
