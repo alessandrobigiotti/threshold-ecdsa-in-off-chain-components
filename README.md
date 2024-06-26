@@ -152,8 +152,14 @@ In particular:
 
   - *combine_partial_signatures*: This function contains the logic for generating the final threshold signature. We refer to section 4.4 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):The signature combiner $P_c$ receives $t$ valid partial signatures $\sigma_i = (r_i, l_i, \beta_i)$, then $P_c$ works as follows:
     - (1) Computes $\gamma_i = (l_i + \beta_i \cdot m)$ mod $p$
-    - (2) Computes the point: $$(x_i^{'}, y_i^{'}) = \gamma_i \cdot G - e \cdot \chi_i Pk_i$$ where, $G$ is the generator point of the curve, $Pk_i$ is the public key of the node $i$ and $\chi_i$ is the Lagrange coefficient of the node $i$. $P_c$ verifies if $x_i^{'}$ = $r_i$, if it holds the signature is valid;
+    - (2) Computes the point: $$(x_i', y_i') = \gamma_i \cdot G - e \cdot \chi_i Pk_i$$ where, $G$ is the generator point of the curve, $Pk_i$ is the public key of the node $i$ and $\chi_i$ is the Lagrange coefficient of the node $i$. $P_c$ verifies if $x_i'$ = $r_i$, if it holds the signature is valid;
     - (3) Produces the threshold signature ($r$, $l$, $\beta$) as follows: $$r = \sum_{i=1}^{t} r_i;\ l = \sum_{i=1}^{t} l_i;\ \beta = \sum_{i=1}^{t} \beta_i $$
+
+  - *verify_threshold_signature*: This function contains the logic for verifying the final threshold signature. We refer to section 4.5 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909): Each node in the network is equipped with the group public key $P_k$. The verification of the threshold signature involves the following steps:
+    - (1) Each verifier $P_v$ computes $e = H(m)$, where $m$ is the message and $H$ is an hash function;
+    - (2) Each verifier $P_v$ computes $\gamma = (l + \beta \cdot m)$ mod $p$
+    - (3) Each verifier $P_v$ computes $(x',y') = \gamma \cdot G - e \cdot P_k$, then $v = x'$ mod $p$
+
 
 ## Deploy Configuration
 
