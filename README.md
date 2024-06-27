@@ -17,11 +17,7 @@ The project is constantly evolving and involves the following steps:
 
 - :ballot_box_with_check: Introduction of multi threading processes for the generation of a threshold signature based on ECDSA
 
-- :arrows_counterclockwise: Procedures for generating and verifying the threshold signature scheme proposed by the authors of [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909)
-
-- :white_square_button: Introduction of multi threading processes for the generation of a [bc_ectss](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909) threshold signature based on ECDSA
-
-- :white_square_button: Connect multithreaded processes to their respective smart contacts of interconnected blockchains
+- :arrows_counterclockwise: Connect multithreaded processes to their respective smart contacts of interconnected blockchains
 
 - :white_square_button: Extend the use cases covered by the *SourceSmartContract* and the *TargetSmartContract*
 
@@ -126,41 +122,7 @@ In particular:
 
 - *multi_thread_threshold_ecdsa.py*: this file contains a multi-threading application simulating the off-chain nodes implementing a threshold signature based on ECDSA. Threads are divided into a primary process and a series of secondary threads. The primary process is responsible for generating the messages to be signed, sending them to the secondary threads and waiting for the partial signatures to be produced. Each secondary node produces its own signature and returns it to the primary node. The primary node, once all the signatures have been collected, is responsible for producing the threshold signature and using it to send a transaction on the blockchain. This file was used to generate metrics relating to gas consumed on various blockchains. The threshold signature scheme adopted is the one just described.
 
-- *bc_ectss.py*: This file contains operations for constructing an ECDSA-based threshold signature that differs from the standard signature. The file contains the implementation of the *BC_ECTSS* algorithm proposed by the authors in the following [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909). Specifically, here we refer to section 4 of the paper, where the authors propose a new threshold signature scheme based on ECDSA. Below is a description of the operations carried out:
-  - *key_gen*: This function contains the logic for a distributed key generation protocol. We refer to section 4.2 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
-    - (1) Each node $P_i$ generates a random polynomial as follows (each $a_i \in Z_q$):  $$f_i(x) = a_{i0} + a_{i1}x + a_{i2}x^2 + \cdots + a_{i(t-1)}x^{t-1}$$
-    - (2) Each node $P_i$ compute its public share and broadcasts it to the other nodes:
-      - (2.1) $P_i$ calculates the secret share $s_{ij} = f_i(ID_j)$ and sends it to other nodes $P_j$ in the network.
-      - (2.2) $P_i$ also calculates $\eta_{i\mu} = a_{i\mu} \cdot G$ for $\mu = 0, 1, \ldots, t-1$, where $G$ is a generator of the elliptic curve group.
-      - (2.3) The set {$\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}$} is broadcasted in the blockchain network.
-    - (3) Each node, upon receiving the shares, verifies its correctness:
-      - (3.1) $P_j$ receives the secret share $s_{ij}$ from other nodes.
-      - (3.2) Node $P_j$ uses the broadcast information $\{\eta_{i0}, \eta_{i1}, \ldots, \eta_{i(t-1)}\}$ to verify the equality: $$s_{ij} \cdot G = \sum_{\mu=0}^{t-1}  \eta_{i\mu} \cdot ID_{j}^{\mu}$$
-       If this equality holds, the secret share $s_{ij}$ is valid; otherwise, it is invalid.
-      - (3.3) After verifying the shares, node $P_j$ calculates its own public key $PK_j$ and private key $SK_j$ as:
-       $$SK_j = \sum_{u=1}^n s_{uj}, \quad PK_j = SK_j \cdot G$$
-    - (4) Global public key calculation:
-      - (4.1)  The signature group private key $sk$ is determined by the sum of $a_{i0}$ coefficients from all $n$ nodes: $$sk = \sum_{i=1}^n a_{i0} = F(0)$$
-       where $$F(x) = \sum_{i=1}^n f_i(x)$$.
-      - (4.2) Any node in the signature group can use the broadcast information to calculate the global public key $P_k$: $$P_k = \left( \sum_{i=1}^n a_{i0} \right) \cdot G \mod p$$
-
-  - *partial_signature*: This function contains the logic for calculating the partial signature for each node. We refer to section 4.3 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):
-    - (1) Each node $P_i$ select a random secret $k_i \in F_q$ and compute the hash of the message $e = H(m)$;
-    - (2) Each node $P_i$ calculates $r_i = x_i\ \text{mod}\ p$, where ($x_i, y_i$) = $k_i \cdot G$. If $r_i = 0$ return to (1);
-    - (3) Each node $P_i$ randomly selects ($\alpha_i, \beta_i$) from $Z_q$ such that: $k_i = \alpha_i r_i + \beta_i m$, then, calculates $l_i = \alpha_i r_i + e \chi_i SK_i$, where $\chi_i$ is the lagrange coefficient (see the function *lagrange_coefficient* from the file *shamir_secret_sharing.py*) related to the node with index $i$;
-    - (4) Each node $P_i$ broadcasts the partial signature $\sigma_i = (r_i, l_i, \beta_i)$ to the other nodes for the verification and the final signature aggregation.
-
-  - *combine_partial_signatures*: This function contains the logic for generating the final threshold signature. We refer to section 4.4 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909):The signature combiner $P_c$ receives $t$ valid partial signatures $\sigma_i = (r_i, l_i, \beta_i)$, then $P_c$ works as follows:
-    - (1) Computes $\gamma_i = (l_i + \beta_i \cdot m)$ mod $p$
-    - (2) Computes the point: $$(x_i', y_i') = \gamma_i \cdot G - e \cdot \chi_i Pk_i$$ where, $G$ is the generator point of the curve, $Pk_i$ is the public key of the node $i$ and $\chi_i$ is the Lagrange coefficient of the node $i$. $P_c$ verifies if $x_i'$ = $r_i$, if it holds the signature is valid;
-    - (3) Produces the threshold signature ($r$, $l$, $\beta$) as follows: $$r = \sum_{i=1}^{t} r_i;\ l = \sum_{i=1}^{t} l_i;\ \beta = \sum_{i=1}^{t} \beta_i $$
-
-  - *verify_threshold_signature*: This function contains the logic for verifying the final threshold signature. We refer to section 4.5 of the [paper](https://www.sciencedirect.com/science/article/abs/pii/S2214212622001909): Each node in the network is equipped with the group public key $P_k$. The verification of the threshold signature involves the following steps:
-    - (1) Each verifier $P_v$ computes $e = H(m)$, where $m$ is the message and $H$ is an hash function;
-    - (2) Each verifier $P_v$ computes $\gamma = (l + \beta \cdot m)$ mod $p$;
-    - (3) Each verifier $P_v$ computes $(x',y') = \gamma \cdot G - e \cdot P_k$, then $v = x'$ mod $p$;
-    - (4) The signature is valid if and only if $v = r$.
-
+- WORK IN PROGRESS...
 
 ## Deploy Configuration
 
